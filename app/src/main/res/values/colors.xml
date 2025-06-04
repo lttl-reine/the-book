@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary Color Palette -->
+    <color name="primary_100">#C4CDF3</color>
+    <color name="primary_300">#718CE4</color>
+    <color name="primary_500">#1958D7</color>
+    <color name="primary_700">#0045C0</color>
+    <color name="primary_900">#0028A1</color>
+
+    <!-- Secondary Color Palette (Orange) -->
+    <color name="secondary_100">#FFE8C3</color>
+    <color name="secondary_300">#FCEE74</color>
+    <color name="secondary_500">#F8E435</color>
+    <color name="secondary_700">#F7BC2B</color>
+    <color name="secondary_800">#F5A623</color>
+    <color name="secondary_900">#9A6516</color>
+
+    <!-- Neutral (Grey) Palette -->
+    <color name="grey_50">#FAFAFA</color>
+    <color name="grey_200">#EEEEEE</color>
+    <color name="grey_500">#9E9E9E</color>
+    <color name="grey_700">#616161</color>
+    <color name="grey_900">#212121</color>
+
+    <!-- State Colors -->
+    <color name="error">#FF0000</color>
+    <color name="success">#00FF00</color>
+    <color name="warning">#FFFF00</color>
 </resources>
