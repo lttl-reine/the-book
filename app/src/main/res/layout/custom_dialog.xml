@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/layout_background">
+
+    <!-- Biểu tượng -->
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_logout_black"
+        android:contentDescription="Warning Icon" />
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/inter_regular"
+        android:text="Bạn có chắc chắn muốn đăng xuất?"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:layout_marginTop="16dp" />
+
+    <!-- Container cho các nút -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
+
+        <!-- Nút No -->
+        <Button
+            android:id="@+id/btnNo"
+            android:layout_width="120dp"
+            android:layout_height="40dp"
+            android:textAllCaps="false"
+            android:fontFamily="@font/inter_regular"
+            android:textSize="16sp"
+            android:text="Hủy"
+            android:textStyle="bold"
+            android:textColor="#757575"
+            android:background="@drawable/btn_secondary_background"
+            android:layout_marginEnd="8dp"
+            android:layout_alignParentStart="true"/>
+
+        <!-- Nút Yes -->
+        <Button
+            android:id="@+id/btnYes"
+            android:layout_width="120dp"
+            android:layout_height="40dp"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:fontFamily="@font/inter_regular"
+            android:text="Xác nhận"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_primary_background"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+
+</LinearLayout>
