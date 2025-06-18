@@ -19,6 +19,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:layout_marginTop="16dp"
             android:layout_marginBottom="24dp">
 
             <ImageView
@@ -343,7 +344,7 @@
             android:id="@+id/et_epub_url"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="Or enter image URL"
+            android:hint="Or enter epub URL"
             android:background="@drawable/btn_secondary_background"
             android:padding="8dp"
             android:textSize="12sp"

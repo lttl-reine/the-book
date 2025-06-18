@@ -1,178 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:layout_height="match_parent">
 
-    <LinearLayout
+    <!-- NavHostFragment cho Bottom Navigation -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/bottom_nav_host"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:navGraph="@navigation/nav_graph_bottom" />
 
-        <include
-            android:id="@+id/header_bar"
-            layout="@layout/header_bar_layout" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:background="#F8F8F8"
-            android:paddingVertical="8dp">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:id="@+id/tv_all"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="All"
-                    android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/tab_selected_background"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/tv_currently_reading"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="Currently Reading"
-                    android:textSize="14sp"
-                    android:textColor="#666666"
-                    android:background="@drawable/tab_unselected_background"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/tv_completed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="Completed"
-                    android:textSize="14sp"
-                    android:textColor="#666666"
-                    android:background="@drawable/tab_unselected_background"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <ImageView
-                    android:id="@+id/iv_add_filter"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_plus_black"
-                    android:background="@color/white"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:scaleType="center" />
-
-            </LinearLayout>
-
-        </HorizontalScrollView>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sort by:"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginEnd="16dp" />
-
-            <TextView
-                android:id="@+id/tv_sort_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Title"
-                android:textSize="14sp"
-                android:textColor="#007AFF"
-                android:textStyle="bold"
-                android:layout_marginEnd="16dp"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/tv_sort_author"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Author"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginEnd="16dp"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/tv_sort_progress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Progress"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:clickable="true"
-                android:focusable="true" />
-
-        </LinearLayout>
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_books"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                tools:listitem="@layout/book_item"
-                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                app:spanCount="2" />
-
-        </ScrollView>
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@color/white"
-            app:menu="@menu/bottom_navigation_menu" />
-
-    </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_book"
-        android:layout_width="wrap_content"
+    <!-- BottomNavigationView -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_marginBottom="64dp"
-        android:layout_marginEnd="8dp"
-        android:clickable="true"
-        android:contentDescription="Add new book"
-        android:focusable="true"
-        android:src="@drawable/ic_plus_black"
-        app:tint="@color/black"
-        app:backgroundTint="?attr/colorPrimary" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        app:menu="@menu/bottom_navigation_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

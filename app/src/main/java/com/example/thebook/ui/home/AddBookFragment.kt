@@ -173,7 +173,6 @@ class AddBookFragment : Fragment() {
         val coverImageUrl = binding.etImageUrl.text.toString().trim()
         val bookFileUrl = binding.etEpubUrl.text.toString().trim()
 
-        //val selectedLanguageIndex = binding.spinnerLanguage.selectedItemPosition
         val selectedLanguageIndex = binding.spinnerLanguage.selectedItemPosition
         val languages = binding.spinnerLanguage.tag as? List<Language>
         val selectedLanguageName = if (languages != null && selectedLanguageIndex != -1) {
@@ -213,10 +212,12 @@ class AddBookFragment : Fragment() {
         binding.etPublishedYear.text?.clear()
         binding.etPageCount.text?.clear()
         binding.etImageUrl.text?.clear()
+        binding.etEpubUrl.text?.clear()
         binding.spinnerLanguage.setSelection(0)
         binding.chipGroupGenre.clearCheck()
         selectedGenres.clear()
         binding.ivCoverPreview.setImageResource(R.drawable.book_cover_placeholder)
+
     }
 
     private fun populateGenreChips(categories: List<Category>) {
