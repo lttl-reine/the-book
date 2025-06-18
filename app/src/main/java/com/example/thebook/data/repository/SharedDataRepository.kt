@@ -33,7 +33,9 @@ class SharedDataRepository {
                 for (childSnapshot in snapshot.children) {
                     val category = childSnapshot.getValue(Category::class.java)
                     category?.let {
+                        it.id = (childSnapshot.key ?: "").toString()
                         categoryList.add(it)
+
                         Log.d(TAG, "Fetched Category: ${it.displayName} (${it.name})")
                     } ?: Log.e(TAG, "Failed to parse category: ${childSnapshot.key}")
                 }

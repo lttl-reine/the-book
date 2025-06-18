@@ -50,13 +50,15 @@ class BookRepository {
     fun getBookById(bookId: String) : Flow<Resource<Book>> = callbackFlow {
         trySend(Resource.Loading())
 
-        val bookRef = database.getReference("books").child(bookId)
+        val bookRef = database.getReference("Books").child(bookId)
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val book = snapshot.getValue(Book::class.java)
                 if (book != null) {
                     book.bookId = snapshot.key ?: ""
                     trySend(Resource.Success(book))
+                } else {
+                    trySend(Resource.Error("Book not found for ID: $bookId"))
                 }
             }
 
@@ -66,6 +68,9 @@ class BookRepository {
         }
         // Just liston one time
         bookRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+        }
     }
 
     fun saveBook(book: Book, uploaderId: String): Flow<Resource<Unit>> = callbackFlow {

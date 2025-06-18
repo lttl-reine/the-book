@@ -1,6 +1,7 @@
 package com.example.thebook.data.model
 
 data class Category(
-    val  displayName: String = "",
+    var id : String = "",
+    val displayName: String = "",
     val name: String = ""
 )

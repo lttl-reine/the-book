@@ -35,7 +35,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Add a New Book"
+                android:text="Thêm Sách Mới"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
@@ -52,7 +52,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Book Details"
+            android:text="Chi Tiết Sách"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
@@ -62,7 +62,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Title *"
+            android:text="Tiêu đề *"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -71,7 +71,7 @@
             android:id="@+id/et_title"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Enter book title"
+            android:hint="Nhập tiêu đề sách"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
@@ -81,7 +81,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Author *"
+            android:text="Tác giả *"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -90,7 +90,7 @@
             android:id="@+id/et_author"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Enter author name"
+            android:hint="Nhập tên tác giả"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
@@ -100,7 +100,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Genre"
+            android:text="Thể loại"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -121,19 +121,18 @@
             android:id="@+id/btn_add_genre"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
-            android:text="+ Add Genre"
+            android:text="+ Thêm Thể loại"
             android:background="@drawable/chip_unselected_background"
             android:textColor="@color/primary_700"
             android:textSize="12sp"
             android:gravity="center"
             android:paddingHorizontal="16dp" />
 
-
         <!-- Description Field -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Description"
+            android:text="Mô tả"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -142,7 +141,7 @@
             android:id="@+id/et_description"
             android:layout_width="match_parent"
             android:layout_height="120dp"
-            android:hint="Enter a brief summary of the book (max 500 characters)"
+            android:hint="Nhập tóm tắt ngắn gọn về sách (tối đa 500 ký tự)"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
@@ -178,7 +177,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Published Year"
+                    android:text="Năm Xuất bản"
                     android:textSize="14sp"
                     android:textColor="@android:color/black"
                     android:layout_marginBottom="8dp" />
@@ -205,7 +204,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Page Count"
+                    android:text="Số Trang"
                     android:textSize="14sp"
                     android:textColor="@android:color/black"
                     android:layout_marginBottom="8dp" />
@@ -228,7 +227,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Language"
+            android:text="Ngôn ngữ"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -244,7 +243,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Media Upload"
+            android:text="Tải Lên Tệp Media"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
@@ -254,7 +253,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cover Image"
+            android:text="Ảnh Bìa"
             android:textSize="14sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
@@ -280,30 +279,12 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/btn_upload_cover"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:text="📁 Upload Cover Image"
-                    android:background="@drawable/btn_secondary_background"
-                    android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Or"
-                    android:textSize="12sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="8dp" />
-
                 <EditText
                     android:id="@+id/et_image_url"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:hint="Or enter image URL"
+                    android:layout_marginTop="32dp"
+                    android:hint="Nhập URL ảnh"
                     android:background="@drawable/btn_secondary_background"
                     android:padding="8dp"
                     android:textSize="12sp" />
@@ -316,35 +297,16 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Book File"
+            android:text="Tệp Sách"
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btn_upload_file"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="📁 Upload Book File (PDF, EPUB)"
-            android:background="@drawable/btn_secondary_background"
-            android:textColor="@android:color/black"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Or"
-            android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
-            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="8dp" />
 
         <EditText
             android:id="@+id/et_epub_url"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="Or enter epub URL"
+            android:hint="Nhập URL epub"
             android:background="@drawable/btn_secondary_background"
             android:padding="8dp"
             android:textSize="12sp"
@@ -355,7 +317,7 @@
             android:id="@+id/btn_save_book"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Save Book"
+            android:text="Thêm Sách"
             android:background="@drawable/btn_primary_background"
             android:textColor="@android:color/white"
             android:textSize="16sp"

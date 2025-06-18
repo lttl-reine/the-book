@@ -146,7 +146,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                tools:listitem="@layout/book_item"
+                tools:listitem="@layout/item_book"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2" />
 

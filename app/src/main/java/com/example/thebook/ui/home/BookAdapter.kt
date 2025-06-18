@@ -8,14 +8,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
-import com.example.thebook.databinding.BookItemBinding
+import com.example.thebook.databinding.ItemBookBinding
 
 
 class BookAdapter(private val onItemClick: (Book) -> Unit) :
     ListAdapter<Book, BookAdapter.BookViewHolder>(BookDiffCallback()){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
-        val binding = BookItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemBookBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return BookViewHolder(binding)
     }
 
@@ -24,12 +24,12 @@ class BookAdapter(private val onItemClick: (Book) -> Unit) :
         holder.bind(book, onItemClick)
     }
 
-    inner class BookViewHolder(private val binding: BookItemBinding):
+    inner class BookViewHolder(private val binding: ItemBookBinding):
             RecyclerView.ViewHolder(binding.root) {
                 fun bind(book: Book, onItemClick: (Book) -> Unit) {
                     binding.apply {
                         tvBookTitle.text = book.title
-                        tvBookAuthor.text = book.title
+                        tvBookAuthor.text = book.author
 
                         Glide.with(ivBookCover.context)
                             .load(book.coverImageUrl)

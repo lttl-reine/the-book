@@ -22,9 +22,7 @@
         <action
             android:id="@+id/action_homeTabFragment_to_addBookFragment"
             app:destination="@id/addBookFragment" />
-        <action
-            android:id="@+id/action_homeTabFragment_to_bookDetailFragment2"
-            app:destination="@id/bookDetailFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/profileTabFragment"
@@ -52,13 +50,17 @@
     </fragment>
     <fragment
         android:id="@+id/bookDetailFragment"
-        android:name="com.example.thebook.ui.home.BookDetailFragment"
+        android:name="com.example.thebook.ui.detail.BookDetailFragment"
         android:label="fragment_book_detail"
-        tools:layout="@layout/fragment_book_detail" >
+        tools:layout="@layout/fragment_book_detail">
+        <argument
+            android:name="bookId"
+            app:argType="string"/>
         <action
             android:id="@+id/action_bookDetailFragment_to_homeTabFragment"
             app:destination="@id/homeTabFragment"
-            app:popUpToInclusive="true"/>
+            app:popUpTo="@id/homeTabFragment"
+            app:popUpToInclusive="false"/>
     </fragment>
     <fragment
         android:id="@+id/addBookFragment"

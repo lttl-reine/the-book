@@ -1,6 +1,7 @@
 package com.example.thebook.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -43,6 +44,7 @@ class HomeTabFragment : Fragment() {
 
     private fun setupRecyclerView() {
         bookAdapter = BookAdapter { book ->
+            Log.d("HomeTabFragment", "setupRecyclerView: bookId = ${book.bookId}")
             navigateToBookDetail(book)
         }
 
@@ -52,7 +54,8 @@ class HomeTabFragment : Fragment() {
         }
     }
     private fun navigateToBookDetail(book: Book) {
-        findNavController().navigate(R.id.action_homeTabFragment_to_bookDetailFragment)
+        val action = HomeTabFragmentDirections.actionHomeTabFragmentToBookDetailFragment(book.bookId)
+        findNavController().navigate(action)
     }
 
     private fun observeBooks() {
