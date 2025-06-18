@@ -54,6 +54,10 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.kotlin.stdlib)
 
+    // coroutine
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.1")
+
+    //Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-database-ktx")

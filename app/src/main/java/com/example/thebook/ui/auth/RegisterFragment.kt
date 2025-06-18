@@ -1,4 +1,4 @@
-package com.example.thebook.views
+package com.example.thebook.ui.auth
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentRegisterBinding
-import com.example.thebook.viewmodel.AuthViewModel
 
 class RegisterFragment : Fragment() {
     private var _binding : FragmentRegisterBinding? = null
@@ -28,6 +27,7 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Handle register button, create new account
         binding.btnRegister.setOnClickListener {
             val email = binding.etEmail.text.toString()
             val password = binding.etPassword.text.toString()
@@ -41,10 +41,12 @@ class RegisterFragment : Fragment() {
             }
         }
 
+        // Handle text login, move to login fragment
         binding.tvLogin.setOnClickListener {
             findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
 
+        // Handle state of create new account
         viewModel.authState.observe(viewLifecycleOwner) { result ->
             result.onSuccess { user ->
                 Toast.makeText(context, "Đăng ký thành công: ${user.email}", Toast.LENGTH_SHORT).show()

@@ -1,4 +1,4 @@
-package com.example.thebook.model
+package com.example.thebook.data.model
 
 data class User(
     val uid: String = "",

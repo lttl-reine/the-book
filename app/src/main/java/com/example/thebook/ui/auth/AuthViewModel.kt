@@ -1,11 +1,11 @@
-package com.example.thebook.viewmodel
+package com.example.thebook.ui.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.thebook.model.User
-import com.example.thebook.repository.AuthRepository
+import com.example.thebook.data.model.User
+import com.example.thebook.data.repository.AuthRepository
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {

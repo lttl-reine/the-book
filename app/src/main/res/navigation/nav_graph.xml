@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.example.thebook.views.LoginFragment"
+        android:name="com.example.thebook.ui.auth.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
-        android:name="com.example.thebook.views.RegisterFragment"
+        android:name="com.example.thebook.ui.auth.RegisterFragment"
         android:label="fragment_register"
         tools:layout="@layout/fragment_register" >
         <action
@@ -28,11 +28,27 @@
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.thebook.views.HomeFragment"
+        android:name="com.example.thebook.ui.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
             android:id="@+id/action_homeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_addBookFragment"
+            app:destination="@id/addBookFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/bookDetailFragment"
+        android:name="com.example.thebook.ui.home.BookDetailFragment"
+        android:label="fragment_book_detail"
+        tools:layout="@layout/fragment_book_detail" />
+    <fragment
+        android:id="@+id/addBookFragment"
+        android:name="com.example.thebook.ui.home.AddBookFragment"
+        android:label="fragment_add_book"
+        tools:layout="@layout/fragment_add_book" />
 </navigation>

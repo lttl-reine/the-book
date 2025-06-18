@@ -1,4 +1,4 @@
-package com.example.thebook.views
+package com.example.thebook.ui.auth
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentLoginBinding
-import com.example.thebook.viewmodel.AuthViewModel
 
 class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
@@ -28,6 +27,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Check if user have log in or not
         if (viewModel.isUserLoggedIn()) {
             findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
         }
@@ -43,12 +43,12 @@ class LoginFragment : Fragment() {
             }
         }
 
-        // Move to register screen
+        // Handle sign up text, move to register screen
         binding.tvSignUp.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
 
-        // Handle create account state
+        // Handle state of login
         viewModel.authState.observe(viewLifecycleOwner) {result ->
             result.onSuccess { user ->
                 Toast.makeText(context, "Đăng nhập thành công: ${user.email}", Toast.LENGTH_SHORT).show()

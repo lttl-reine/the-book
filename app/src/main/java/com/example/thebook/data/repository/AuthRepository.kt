@@ -1,6 +1,6 @@
-package com.example.thebook.repository
+package com.example.thebook.data.repository
 
-import com.example.thebook.model.User
+import com.example.thebook.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
@@ -75,5 +75,9 @@ class AuthRepository {
                 email = firebaseUser.email ?: ""
             )
         }
+    }
+
+    fun getCurrentUserId(): String? {
+        return firebaseAuth.currentUser?.uid
     }
 }
