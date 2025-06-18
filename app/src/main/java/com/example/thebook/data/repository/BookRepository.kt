@@ -10,6 +10,7 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import java.util.UUID
 
 class BookRepository {
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
@@ -70,11 +71,11 @@ class BookRepository {
     fun saveBook(book: Book, uploaderId: String): Flow<Resource<Unit>> = callbackFlow {
         trySend(Resource.Loading())
         val newBookRef = booksRef.push()
-        val bookId = book.copy(bookId = newBookRef.key ?: "").toString()
+        val generatedBookId = newBookRef.key ?: UUID.randomUUID().toString()
         val uploadDate = System.currentTimeMillis()
 
         val bookToSave = book.copy(
-            bookId = bookId,
+            bookId = generatedBookId,
             uploadDate = uploadDate,
             uploaderId = uploaderId
         )
