@@ -14,11 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeFragment : Fragment() {
     private lateinit var navController: NavController
-    private lateinit var bottomNavigationView: BottomNavigationView // Khai báo biến này
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,7 +29,7 @@ class HomeFragment : Fragment() {
         val navHostFragment = childFragmentManager.findFragmentById(R.id.bottom_nav_host) as NavHostFragment
         navController = navHostFragment.navController
 
-        bottomNavigationView = view.findViewById<BottomNavigationView>(R.id.bottom_navigation) // Gán giá trị
+        bottomNavigationView = view.findViewById(R.id.bottom_navigation)
         bottomNavigationView.setupWithNavController(navController)
 
         // Hide bottom navigation menu for some fragment
@@ -72,7 +68,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // Hàm để hiện BottomNavigationView
+    // Unhidden BottomNavigationView
     private fun showBottomNavigationView() {
         if (bottomNavigationView.visibility == View.GONE) {
             bottomNavigationView.visibility = View.VISIBLE

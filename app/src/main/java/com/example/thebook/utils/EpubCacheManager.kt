@@ -21,30 +21,30 @@ object EpubCacheManager {
     }
 
     // Check if temp epub file exist
-    fun hasTempEpubFile(context: Context): Boolean {
+    private fun hasTempEpubFile(context: Context): Boolean {
         return getTempEpubFile(context).exists()
     }
 
     // Check if temp directory exist
-    fun hasTempExtractDir(context: Context): Boolean {
+    private fun hasTempExtractDir(context: Context): Boolean {
         val dir = getTempExtractDir(context)
         return dir.exists() && dir.isDirectory && dir.listFiles()?.isNotEmpty() == true
     }
 
     // Get temp epub file size
-    fun getTempEpubFileSize(context: Context): Long {
+    private fun getTempEpubFileSize(context: Context): Long {
         val file = getTempEpubFile(context)
         return file.length()
     }
 
     // Get temp directory size
-    fun getTempExtractDirSize(context: Context): Long {
+    private fun getTempExtractDirSize(context: Context): Long {
         val dir = getTempExtractDir(context)
         return calculateDirSize(dir)
     }
 
     // Get total cache size
-    fun getTotalCacheSize(context: Context): Long {
+    private fun getTotalCacheSize(context: Context): Long {
         return getTempEpubFileSize(context) + getTempExtractDirSize(context)
     }
 
@@ -88,7 +88,7 @@ object EpubCacheManager {
     }
 
     // Delete all cache
-    fun clearAllCache(context: Context): Boolean {
+    private fun clearAllCache(context: Context): Boolean {
         val clearedEpub = clearTempEpubFile(context)
         val clearedExtract = clearTempExtractDir(context)
 
@@ -99,10 +99,6 @@ object EpubCacheManager {
         return false
     }
 
-    /**
-     * Kiểm tra và cleanup cache nếu quá lớn
-     * @param maxSizeBytes: Kích thước tối đa cho phép (bytes)
-     */
     fun checkAndCleanupIfNeeded(context: Context, maxSizeBytes: Long = 100 * 1024 * 1024) { // Default 100MB
         val totalSize = getTotalCacheSize(context)
         if (totalSize > maxSizeBytes) {

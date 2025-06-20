@@ -13,6 +13,15 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:progress="50"
+            android:visibility="gone"
+            app:indicatorColor="?attr/colorSecondary"/>
+
         <!-- Header with back button and title -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -114,19 +123,11 @@
             app:singleLine="false"
             app:selectionRequired="false"
             app:singleSelection="false"
+            style="@style/CustomCheckableChipStyle"
+            android:backgroundTint="@color/grey_700"
             android:layout_marginBottom="16dp">
-        </com.google.android.material.chip.ChipGroup>
 
-        <TextView
-            android:id="@+id/btn_add_genre"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:text="+ Thêm Thể loại"
-            android:background="@drawable/chip_unselected_background"
-            android:textColor="@color/primary_700"
-            android:textSize="12sp"
-            android:gravity="center"
-            android:paddingHorizontal="16dp" />
+        </com.google.android.material.chip.ChipGroup>
 
         <!-- Description Field -->
         <TextView

@@ -1,5 +1,6 @@
 package com.example.thebook.ui.home
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -28,22 +29,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AddBookFragment : Fragment() {
-    private final var TAG: String = "AddBookFragment"
+    private val TAG: String = "AddBookFragment"
     private var _binding: FragmentAddBookBinding? = null
     private val binding get() = _binding!!
+
+    private val selectedGenres = mutableListOf<String>()
 
     private val addBookViewModel : AddBookViewModel by lazy {
         val sharedDataRepository = SharedDataRepository()
         val bookRepository = BookRepository()
         val authRepository = AuthRepository()
         AddBookViewModelFactory(sharedDataRepository, bookRepository, authRepository).create(AddBookViewModel::class.java)
-    }
-
-    private val selectedGenres = mutableListOf<String>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
     }
 
     override fun onCreateView(
@@ -89,6 +85,7 @@ class AddBookFragment : Fragment() {
         })
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupListeners() {
         // Handle back button
         binding.btnBack.setOnClickListener {
@@ -140,19 +137,22 @@ class AddBookFragment : Fragment() {
                         when (status) {
                             is SaveBookStatus.Error -> {
                                 Log.d(TAG, "Error save book: ${status.message}")
-                                // hide loading bar
+                                binding.progressBar.visibility = View.GONE
+                                binding.btnSaveBook.isEnabled = true
                                 addBookViewModel.resetSaveBookStatus()
                             }
                             SaveBookStatus.Idle -> {
-                                // hide loading bar
+                                binding.progressBar.visibility = View.GONE
                             }
                             SaveBookStatus.Loading -> {
                                 Log.d(TAG, "Saving book ...")
-                                // show loading bar
+                                binding.progressBar.visibility = View.VISIBLE
+                                binding.btnSaveBook.isEnabled = false
                             }
                             is SaveBookStatus.Success -> {
                                 Log.d(TAG, status.message)
-                                // hide loading bar
+                                binding.progressBar.visibility = View.GONE
+                                binding.btnSaveBook.isEnabled = true
                                 clearForm()
                                 addBookViewModel.resetSaveBookStatus()
 

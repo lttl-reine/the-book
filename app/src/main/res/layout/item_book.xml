@@ -9,7 +9,7 @@
     android:layout_marginVertical="8dp"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
+    android:foreground="@color/white"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp">
 

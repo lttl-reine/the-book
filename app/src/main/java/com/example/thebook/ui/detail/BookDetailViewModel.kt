@@ -18,7 +18,7 @@ class BookDetailViewModel(
     private val bookRepository: BookRepository,
     private val sharedDataRepository: SharedDataRepository,
 ) : ViewModel() {
-    private final val TAG  = "BookDetailViewModel"
+    private val TAG  = "BookDetailViewModel"
 
     private val _book = MutableStateFlow<Resource<Book>>(Resource.Loading())
     val book : StateFlow<Resource<Book>> = _book.asStateFlow()
@@ -31,7 +31,7 @@ class BookDetailViewModel(
             fetchBookDetails(bookId)
         } else {
             Log.d(TAG, "Invalid bookId")
-            _book.value = Resource.Error("Invalid book ID")
+            _book.value = Resource.Error(Exception("Invalid book ID"))
         }
     }
 

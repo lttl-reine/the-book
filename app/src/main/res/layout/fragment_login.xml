@@ -10,6 +10,8 @@
     android:padding="24dp"
     tools:context=".ui.auth.LoginFragment">
 
+
+
     <!-- Welcome Back Title -->
     <TextView
         android:id="@+id/tv_welcome_title"
@@ -100,6 +102,15 @@
             android:text="Quên mật khẩu?"
             android:textColor="@color/primary_700"
             android:textSize="14sp" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:progress="50"
+            android:visibility="gone"
+            app:indicatorColor="?attr/colorSecondary"/>
 
         <!-- Log In Button -->
 

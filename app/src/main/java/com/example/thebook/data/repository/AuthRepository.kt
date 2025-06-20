@@ -1,18 +1,22 @@
 package com.example.thebook.data.repository
 
+import android.util.Log
 import com.example.thebook.data.model.User
+import com.example.thebook.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository {
+    private val TAG: String = "AuthRepository"
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val usersRef = database.getReference("Users")
 
-    suspend fun login(email: String, password: String): Result<User> {
+    suspend fun login(email: String, password: String): Resource<User> {
         return try {
+            Resource.Loading("Starting login for email")
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user
 
@@ -23,20 +27,24 @@ class AuthRepository {
                     email = firebaseUser.email ?: "",
                     name = firebaseUser.displayName
                 )
-                Result.success(user)
+                Log.d(TAG, "User data fetched: ${user.email}")
+                Resource.Success(user)
             } else {
-                Result.failure(Exception("Login failed: User not found"))
+                Resource.Error(Exception("Login failed: User not found"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Resource.Error(e)
         }
     }
 
-    suspend fun register(email: String, password: String, name: String) : Result<User> {
+    suspend fun register(email: String, password: String, name: String) : Resource<User> {
         return try {
+            Log.d(TAG, "Starting registration for email: $email, name: $name")
+            Resource.Loading("")
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user
             if (firebaseUser != null) {
+                Log.d(TAG, "Registration successful")
                 val profileUpdates = UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                     .build()
@@ -49,12 +57,15 @@ class AuthRepository {
                     name = firebaseUser.displayName
                 )
                 usersRef.child(firebaseUser.uid).setValue(user).await()
-                Result.success(user)
+                Log.d(TAG, "User data saved successfully")
+                Resource.Success(user)
             } else {
-                Result.failure(Exception("Registration failed: User not found"))
+                Log.e(TAG, "Registration failed: User not found")
+                Resource.Error(Exception("Registration failed: User not found"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e(TAG, "Registration error: ${e.message}", e)
+            Resource.Error(e)
         }
     }
 

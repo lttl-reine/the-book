@@ -11,4 +11,21 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item> <!-- Bo tròn 8dp, bạn có thể điều chỉnh -->
     </style>
+
+    <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipBackgroundColor">@color/grey_500</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="CustomCheckableChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="chipMinHeight">36dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="chipBackgroundColor">@color/primary_700</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="fontFamily">@font/inter_regular</item>
+    </style>
 </resources>

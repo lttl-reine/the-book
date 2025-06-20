@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class SharedDataRepository {
-    private final var TAG: String = "SharedDateRepository"
+    private val TAG: String = "SharedDateRepository"
 
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 
@@ -35,8 +35,6 @@ class SharedDataRepository {
                     category?.let {
                         it.id = (childSnapshot.key ?: "").toString()
                         categoryList.add(it)
-
-                        Log.d(TAG, "Fetched Category: ${it.displayName} (${it.name})")
                     } ?: Log.e(TAG, "Failed to parse category: ${childSnapshot.key}")
                 }
                 _categories.value = categoryList
@@ -58,7 +56,6 @@ class SharedDataRepository {
                     val language = childSnapshot.getValue(Language::class.java)
                     language?.let {
                         languageList.add(it)
-                        Log.d(TAG, "Fetched Language: ${it.displayName} (${it.name})")
                     } ?: Log.e(TAG, "Failed to parse language: ${childSnapshot.key}")
 
                 }

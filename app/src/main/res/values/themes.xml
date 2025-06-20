@@ -8,7 +8,7 @@
 
         <!-- Surface and background color -->
         <item name="colorSurface">@color/grey_100</item>
-        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnSurface">@color/grey_700</item>
         <item name="colorOnPrimarySurface">@color/black</item>
 
         <!-- Secondary colors -->
@@ -26,24 +26,6 @@
         <item name="windowSplashScreenIconBackgroundColor">@color/secondary_500</item>
     </style>
 
-    <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Action">
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingEnd">12dp</item>
-        <item name="android:paddingTop">6dp</item>
-        <item name="android:paddingBottom">6dp</item>
-        <item name="chipMinHeight">36dp</item> <item name="android:textSize">14sp</item> </style>
-
-    <style name="CustomCheckableChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingEnd">12dp</item>
-        <item name="android:paddingTop">6dp</item>
-        <item name="android:paddingBottom">6dp</item>
-        <item name="chipMinHeight">36dp</item>
-        <item name="android:textSize">14sp</item>
-        <item name="chipBackgroundColor">@color/primary_700</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="fontFamily">@font/inter_regular</item>
-    </style>
 
     <style name="Theme.TheBook" parent="Base.Theme.TheBook" />
 </resources>

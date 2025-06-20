@@ -37,7 +37,7 @@ class ReaderFragment : Fragment() {
     private val args: ReaderFragmentArgs by navArgs()
     private lateinit var webView: WebView
     private var currentBook: nl.siegmann.epublib.domain.Book? = null
-    private var currentChapterIndex: Int = 3
+    private var currentChapterIndex: Int = 0
     private var extractedEpubDir: File? = null
 
     override fun onCreateView(
@@ -275,21 +275,6 @@ class ReaderFragment : Fragment() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
-        // Navigation buttons
-//        binding.btnPrevChapter?.setOnClickListener {
-//            if (currentChapterIndex > 0) {
-//                displayChapter(currentChapterIndex - 1)
-//            }
-//        }
-//
-//        binding.btnNextChapter?.setOnClickListener {
-//            currentBook?.let { book ->
-//                if (currentChapterIndex < book.spine.spineReferences.size - 1) {
-//                    displayChapter(currentChapterIndex + 1)
-//                }
-//            }
-//        }
 
         binding.epubContentContainer.setOnClickListener {
             toggleControlsVisibility()

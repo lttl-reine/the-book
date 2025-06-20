@@ -73,7 +73,7 @@ class HomeTabFragment : Fragment() {
                     is Resource.Error -> {
 //                        binding.progressBarLoading.visibility = View.GONE
                         // Hiển thị thông báo lỗi
-                         Toast.makeText(context, "Error: ${resource.message}", Toast.LENGTH_LONG).show()
+                         Toast.makeText(context, "Error: ${resource.exception}", Toast.LENGTH_LONG).show()
                     }
                 }
             }

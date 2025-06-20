@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 
 class BookDetailFragment : Fragment() {
-    private final val TAG  = "BookDetailFragment"
+    private val TAG  = "BookDetailFragment"
 
     private var _binding : FragmentBookDetailBinding? = null
     private val binding get() = _binding!!
@@ -37,10 +37,6 @@ class BookDetailFragment : Fragment() {
     }
 
     private var bookUrl : String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -106,8 +102,8 @@ class BookDetailFragment : Fragment() {
                 when (resource) {
                     is Resource.Error -> {
                         //binding.scrollView.visibility = View.GONE
-                        Toast.makeText(context, "Error loading book: ${resource.message}", Toast.LENGTH_LONG).show()
-                        Log.d(TAG, "observeBookDetails: Error loading book: ${resource.message}")
+                        Toast.makeText(context, "Error loading book: ${resource.exception}", Toast.LENGTH_LONG).show()
+                        Log.d(TAG, "observeBookDetails: Error loading book: ${resource.exception}")
                         findNavController().navigateUp() 
                     }
                     is Resource.Loading -> {
