@@ -29,7 +29,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_black"
+                android:src="@drawable/ic_arrow_back_24"
                 android:contentDescription="Back" />
 
             <TextView
@@ -48,7 +48,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:background="@drawable/ic_background_primary"
-                android:src="@drawable/ic_more_vert_black"
+                android:src="@drawable/ic_more_vert_24"
                 android:contentDescription="Menu" />
 
         </LinearLayout>
@@ -240,7 +240,7 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_star_black"
+                    android:src="@drawable/ic_star_24"
                     android:layout_marginEnd="2dp" />
 
                 <TextView

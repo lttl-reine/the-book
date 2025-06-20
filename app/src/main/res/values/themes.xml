@@ -17,6 +17,8 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Ripple effect for selectable items -->
 
+        <item name="android:statusBarColor">@color/primary_500</item>
+
     </style>
 
     <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">

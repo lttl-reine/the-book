@@ -1,111 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".ui.reader.ReaderFragment">
+    tools:context=".ui.reader.ReaderFragment"
+    >
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
+    <!-- Main Content -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="?attr/actionBarTheme"
-        android:fitsSystemWindows="true">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbarReader"
+        <!-- App Bar Layout -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_black"
-            android:background="@color/white"
-            app:titleTextColor="@color/black"
-            app:title="Tên sách/Chương hiện tại">
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar_reader"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/iv_toc"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Mục lục"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_list_24"
+                        app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/iv_settings"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Cài đặt"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_setting_16"
+                        app:tint="@android:color/white" />
+
+                </LinearLayout>
+
+            </androidx.appcompat.widget.Toolbar>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- EPUB Content Container -->
+        <FrameLayout
+            android:id="@+id/epub_content_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bottom_controls_overlay"
+            android:layout_below="@+id/appBarLayout"
+            android:clickable="true"
+            android:focusable="true">
+
+            <WebView
+                android:id="@+id/book_content_webview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <!-- Bottom Controls Overlay -->
+        <LinearLayout
+            android:id="@+id/bottom_controls_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="#80000000"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <SeekBar
+                android:id="@+id/seek_bar_page_progress"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:orientation="horizontal"
-                android:paddingEnd="16dp">
+                android:max="100"
+                android:progress="0" />
 
-<!--                <com.google.android.material.button.MaterialButton-->
-<!--                    android:id="@+id/btnNextChapter"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="29dp"-->
-<!--                    android:text="Chuong ke" />-->
-                <ImageView
-                    android:id="@+id/ivToc"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_list_black"
-                    android:padding="8dp"
-                    android:background="@color/white"
-                    android:contentDescription="Mục lục"
-                    app:tint="?attr/colorOnPrimarySurface"/>
+            <TextView
+                android:id="@+id/tv_page_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Chương 1 / 10"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
 
-                <ImageView
-                    android:id="@+id/ivSettings"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_black"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Cài đặt đọc"
-                    app:tint="?attr/colorOnPrimarySurface"/>
+        </LinearLayout>
 
+    </RelativeLayout>
 
-            </LinearLayout>
-
-        </androidx.appcompat.widget.Toolbar>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <FrameLayout
-        android:id="@+id/epub_content_container"
+    <!-- TOC Overlay (Dim background) -->
+    <View
+        android:id="@+id/toc_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:background="@android:color/black"
+        android:alpha="0.5"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
 
-        <WebView
-            android:id="@+id/book_content_webview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </FrameLayout>
-
-
+    <!-- TOC Panel (Right side) -->
     <LinearLayout
-        android:id="@+id/bottom_controls_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:id="@+id/toc_panel"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@android:color/white"
+        android:elevation="8dp"
         android:orientation="vertical"
-        android:layout_gravity="bottom"
+        android:visibility="gone">
 
-        android:padding="16dp"
-        android:visibility="gone"
-        tools:visibility="visible">
-
-        <SeekBar
-            android:id="@+id/seekBarPageProgress"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:progress="0"
-            android:thumbTint="?attr/colorPrimary"
-            android:progressTint="?attr/colorPrimary"/>
+            android:layout_height="56dp"
+            android:background="?attr/colorPrimary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-        <TextView
-            android:id="@+id/tvPageNumber"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            tools:text="Chương 15 / 250" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mục lục"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_close_toc"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Đóng"
+                android:src="@drawable/ic_close_24"
+                app:tint="@android:color/white" />
+
+        </LinearLayout>
+
+        <!-- TOC RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_toc"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical" />
 
     </LinearLayout>
 

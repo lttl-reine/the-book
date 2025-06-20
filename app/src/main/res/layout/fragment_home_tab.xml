@@ -74,7 +74,7 @@
                     android:id="@+id/iv_add_filter"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:src="@drawable/ic_plus_black"
+                    android:src="@drawable/ic_plus_24"
                     android:background="@color/white"
                     android:clickable="true"
                     android:focusable="true"
@@ -134,6 +134,15 @@
 
         </LinearLayout>
 
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:progress="50"
+            android:visibility="gone"
+            app:indicatorColor="?attr/colorSecondary"/>
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -165,7 +174,7 @@
         android:clickable="true"
         android:contentDescription="Add new book"
         android:focusable="true"
-        android:src="@drawable/ic_plus_black"
+        android:src="@drawable/ic_plus_24"
         app:tint="@color/black"
         app:backgroundTint="?attr/colorPrimary" />
 

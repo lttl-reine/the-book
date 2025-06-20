@@ -171,8 +171,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="24dp"
-            android:background="@drawable/btn_primary_background"
-            android:drawableStart="@drawable/ic_auth_add_user_white"
+            android:drawableStart="@drawable/ic_auth_add_user_24"
             android:fontFamily="@font/inter_regular"
             android:gravity="center"
             android:paddingStart="80dp"
@@ -214,13 +213,13 @@
         </LinearLayout>
 
         <!-- Continue with Google Button -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_google_login"
             android:layout_width="match_parent"
             android:layout_height="42dp"
             android:layout_marginBottom="12dp"
+            android:drawableStart="@drawable/ic_auth_google_24"
             android:background="@drawable/btn_secondary_background"
-            android:drawableStart="@drawable/ic_auth_google"
             android:fontFamily="@font/inter_regular"
             android:gravity="center"
             android:paddingStart="32dp"
@@ -232,13 +231,13 @@
             android:textStyle="bold" />
 
         <!-- Continue with Apple Button -->
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_apple_login"
             android:layout_width="match_parent"
             android:layout_height="42dp"
             android:layout_marginBottom="16dp"
+            android:drawableStart="@drawable/ic_auth_apple_24"
             android:background="@drawable/btn_secondary_background"
-            android:drawableStart="@drawable/ic_auth_apple"
             android:fontFamily="@font/inter_regular"
             android:gravity="center"
             android:paddingStart="32dp"

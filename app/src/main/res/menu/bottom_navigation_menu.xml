@@ -2,16 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/homeTabFragment"
-        android:icon="@drawable/ic_home_black"
+        android:icon="@drawable/ic_home_24"
         android:title="Home" />
 
     <item
         android:id="@+id/libraryTabFragment"
-        android:icon="@drawable/ic_book_black"
+        android:icon="@drawable/ic_book_24"
         android:title="Library" />
 
     <item
         android:id="@+id/profileTabFragment"
-        android:icon="@drawable/ic_user_black"
+        android:icon="@drawable/ic_user_16"
         android:title="Profile" />
 </menu>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="56dp"
+    android:gravity="center_vertical">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvChapterNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chương 1"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/tvChapterTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tên chương"
+            android:textSize="16sp"
+            android:textColor="@color/primary_900"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivCurrentChapterIndicator"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_star_24"
+        android:visibility="gone"
+        app:tint="@color/primary_500" />
+
+</LinearLayout>

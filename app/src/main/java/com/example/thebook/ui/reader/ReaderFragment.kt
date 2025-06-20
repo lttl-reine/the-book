@@ -1,11 +1,15 @@
 package com.example.thebook.ui.reader
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.GestureDetector
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -13,8 +17,14 @@ import android.webkit.WebViewClient
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentReaderBinding
 import com.example.thebook.utils.EpubCacheManager
@@ -22,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.siegmann.epublib.domain.Resource
+import nl.siegmann.epublib.domain.TOCReference
 import nl.siegmann.epublib.epub.EpubReader
 import java.io.*
 import java.net.HttpURLConnection
@@ -40,35 +51,93 @@ class ReaderFragment : Fragment() {
     private var currentChapterIndex: Int = 0
     private var extractedEpubDir: File? = null
 
+    // TOC Panel variables
+    private var isTocPanelVisible = false
+    private lateinit var tocAdapter: TocAdapter
+    private var currentChapterHref: String? = null
+
+    private lateinit var gestureDetector: GestureDetector
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentReaderBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                // Handle when tap the screen
+                if (!isTocPanelVisible) { // Check if TOC is hide/ unhidden
+                    toggleControlsVisibility()
+                }
+                return true
+            }
+        })
+
+        // Set OnTouchListener to transfer touch event from WebView to GestureDetector
+        binding.bookContentWebview.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            false
+        }
+
+        setupSystemUI()
+
         setupToolbar()
         setupWebView()
+        setupTocPanel()
         loadEpubBook()
         setupBottomControls()
+    }
+
+    private fun setupSystemUI() {
+        requireActivity().window.apply {
+            // Change status bar background color
+            statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary_500)
+        }
+
+        // WindowInsetsCompat to handle padding status bar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Apply padding for AppBarLayout to not been overlay by status bar
+            binding.appBarLayout.setPadding(
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                0
+            )
+
+            // Apply padding for bottom controls to not been overlay by navigation bar
+            binding.bottomControlsOverlay.setPadding(
+                binding.bottomControlsOverlay.paddingLeft,
+                binding.bottomControlsOverlay.paddingTop,
+                binding.bottomControlsOverlay.paddingRight,
+                systemBars.bottom + 16 // 16dp is root padding
+            )
+
+            insets
+        }
     }
 
     private fun setupToolbar() {
         (activity as AppCompatActivity).setSupportActionBar(binding.toolbarReader)
         (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
+            setDisplayHomeAsUpEnabled(true) // back button
             title = ""
         }
         binding.toolbarReader.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            findNavController().navigateUp()
         }
 
+        // Handle open/ hidden table of content list
         binding.ivToc.setOnClickListener {
-            showTableOfContents()
+            toggleTocPanel()
         }
 
         binding.ivSettings.setOnClickListener {
@@ -85,8 +154,6 @@ class ReaderFragment : Fragment() {
             displayZoomControls = false
             allowFileAccess = true
             allowContentAccess = true
-            allowFileAccessFromFileURLs = true
-            allowUniversalAccessFromFileURLs = true
         }
 
         webView.webViewClient = object : WebViewClient() {
@@ -114,11 +181,154 @@ class ReaderFragment : Fragment() {
         }
     }
 
+
+    private fun setupTocPanel() {
+        // Tính toán chiều rộng 40% màn hình cho panel TOC
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val panelWidth = (screenWidth * 0.5).toInt()
+
+        // Thiết lập chiều rộng cho panel
+        val layoutParams = binding.tocPanel.layoutParams
+        layoutParams.width = panelWidth
+        binding.tocPanel.layoutParams = layoutParams
+
+        // Khởi tạo adapter cho TOC
+        tocAdapter = TocAdapter { tocItem ->
+            // Xử lý khi nhấn vào một item trong TOC
+            navigateToChapterByTitle(tocItem.title)
+            hideTocPanel()
+        }
+
+        binding.rvToc.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = tocAdapter
+        }
+
+        // Ẩn panel TOC ban đầu
+        binding.tocPanel.visibility = View.GONE
+        binding.tocOverlay.visibility = View.GONE
+
+        // Xử lý nhấn vào overlay để ẩn panel
+        binding.tocOverlay.setOnClickListener {
+            hideTocPanel()
+        }
+
+        // Xử lý nhấn vào nút đóng trong header
+        binding.ivCloseToc.setOnClickListener {
+            hideTocPanel()
+        }
+
+        // Xử lý nhấn vào content container để ẩn panel
+        binding.epubContentContainer.setOnClickListener {
+            if (isTocPanelVisible) {
+                hideTocPanel()
+            } else {
+                toggleControlsVisibility()
+            }
+        }
+    }
+
+    private fun toggleTocPanel() {
+        if (isTocPanelVisible) {
+            hideTocPanel()
+        } else {
+            showTocPanel()
+        }
+    }
+
+    private fun showTocPanel() {
+        currentBook?.let { book ->
+            val tocReferences = book.tableOfContents.tocReferences
+            if (tocReferences.isNotEmpty()) {
+                tocAdapter.updateTocList(tocReferences, currentChapterHref)
+
+                // Đảm bảo overlay được reset hoàn toàn
+                binding.tocOverlay.clearAnimation() // Xóa bất kỳ animation nào đang chạy
+                binding.tocPanel.clearAnimation()   // Xóa bất kỳ animation nào đang chạy
+
+                // Reset trạng thái của overlay
+                binding.tocOverlay.alpha = 0f
+                binding.tocOverlay.visibility = View.VISIBLE
+
+                // Reset trạng thái của panel
+                binding.tocPanel.visibility = View.VISIBLE
+                binding.tocPanel.translationX = binding.tocPanel.width.toFloat()
+
+                // Sử dụng post để đảm bảo UI được cập nhật trước khi animation
+                binding.root.post {
+                    // Bắt đầu animation
+                    binding.tocOverlay.animate()
+                        .alpha(0.5f)
+                        .setDuration(300)
+                        .setListener(null) // Xóa listener cũ nếu có
+                        .start()
+
+                    binding.tocPanel.animate()
+                        .translationX(0f)
+                        .setDuration(300)
+                        .setListener(object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animation: Animator) {
+                                isTocPanelVisible = true
+                            }
+                        })
+                        .start()
+                }
+            } else {
+                Toast.makeText(context, "Sách không có mục lục", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun hideTocPanel() {
+        // Xóa bất kỳ animation nào đang chạy
+        binding.tocOverlay.clearAnimation()
+        binding.tocPanel.clearAnimation()
+
+        binding.tocOverlay.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.tocOverlay.visibility = View.GONE
+                    // Không cần reset alpha ở đây vì sẽ được reset trong showTocPanel
+                }
+            })
+            .start()
+
+        binding.tocPanel.animate()
+            .translationX(binding.tocPanel.width.toFloat())
+            .setDuration(300)
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.tocPanel.visibility = View.GONE
+                    isTocPanelVisible = false
+                }
+            })
+            .start()
+    }
+
+    private fun navigateToChapterByTitle(title: String) {
+        currentBook?.let { book ->
+            // Find chapter by title
+            book.tableOfContents.tocReferences.forEachIndexed { _, tocRef ->
+                if (tocRef.title == title) {
+                    // Find index in spine
+                    book.spine.spineReferences.forEachIndexed { index, spineRef ->
+                        if (spineRef.resource.href == tocRef.resourceId ||
+                            spineRef.resource.href.contains(tocRef.resourceId)) {
+                            displayChapter(index)
+                            return
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun loadEpubBook() {
         val epubFileUrl = args.epubFileUrl
         Log.d(TAG, "loadEpubBook: bookUrl = $epubFileUrl")
-
-        //binding.progressBar?.visibility = View.VISIBLE
 
         lifecycleScope.launch {
             try {
@@ -134,14 +344,12 @@ class ReaderFragment : Fragment() {
                     Log.d(TAG, "Book loaded: ${currentBook?.title}")
 
                     withContext(Dispatchers.Main) {
-                        //binding.progressBar?.visibility = View.GONE
                         displayChapter(currentChapterIndex)
                         (activity as AppCompatActivity).supportActionBar?.title =
                             currentBook?.title ?: "Sách"
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        //binding.progressBar?.visibility = View.GONE
                         Toast.makeText(context, "Không thể tải xuống sách EPUB", Toast.LENGTH_LONG).show()
                         requireActivity().onBackPressedDispatcher.onBackPressed()
                     }
@@ -149,7 +357,6 @@ class ReaderFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading EPUB: ${e.message}", e)
                 withContext(Dispatchers.Main) {
-                    //binding.progressBar?.visibility = View.GONE
                     Toast.makeText(context, "Lỗi khi đọc sách: ${e.message}", Toast.LENGTH_LONG).show()
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                 }
@@ -162,6 +369,8 @@ class ReaderFragment : Fragment() {
             if (index >= 0 && index < book.spine.spineReferences.size) {
                 val spineReference = book.spine.spineReferences[index]
                 val chapterResource: Resource = spineReference.resource
+
+                currentChapterHref = chapterResource.href
 
                 try {
                     var chapterHtml = String(chapterResource.data, Charsets.UTF_8)
@@ -275,10 +484,6 @@ class ReaderFragment : Fragment() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
-        binding.epubContentContainer.setOnClickListener {
-            toggleControlsVisibility()
-        }
     }
 
     private fun toggleControlsVisibility() {
@@ -406,19 +611,9 @@ class ReaderFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         webView.destroy()
-
-        // Không cần cleanup vì chúng ta sử dụng file/folder tạm cố định
-        // File tạm sẽ được overwrite khi đọc sách mới
-        // Nếu muốn cleanup ngay lập tức (không khuyến khích):
-        // cleanupTempFiles()
-
         _binding = null
     }
 
-    /**
-     * Hàm cleanup temp files (optional - chỉ gọi khi cần thiết)
-     * Thường không cần gọi vì file tạm sẽ được tái sử dụng
-     */
     private fun cleanupTempFiles() {
         try {
             val tempEpubFile = File(requireContext().cacheDir, EpubCacheManager.TEMP_EPUB_FILENAME)
@@ -435,6 +630,64 @@ class ReaderFragment : Fragment() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error cleaning up temp files: ${e.message}")
+        }
+    }
+
+    // TOC Adapter class
+    private class TocAdapter(
+        private val onItemClick: (TOCReference) -> Unit
+    ) : RecyclerView.Adapter<TocAdapter.TocViewHolder>() {
+
+        private var tocList: List<TOCReference> = emptyList()
+        private var currentChapterHref: String? = null // Biến mới để lưu href của chương hiện tại
+
+        fun updateTocList(newTocList: List<TOCReference>, currentHref: String? = null) {
+            tocList = newTocList
+            currentChapterHref = currentHref
+            notifyDataSetChanged()
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TocViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(android.R.layout.simple_list_item_1, parent, false)
+            return TocViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: TocViewHolder, position: Int) {
+            holder.bind(tocList[position], currentChapterHref) // Truyền currentChapterHref vào bind
+        }
+
+        override fun getItemCount(): Int = tocList.size
+
+        inner class TocViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val textView = itemView.findViewById<android.widget.TextView>(android.R.id.text1)
+
+            fun bind(tocReference: TOCReference, currentHref: String?) {
+                textView.text = tocReference.title
+
+                // Kiểm tra nếu đây là chương hiện tại
+                val isCurrentChapter = currentHref != null &&
+                        (tocReference.resourceId == currentHref ||
+                                tocReference.resource.href == currentHref ||
+                                currentHref.contains(tocReference.resourceId ?: "") ||
+                                currentHref.contains(tocReference.resource.href ?: ""))
+
+                if (isCurrentChapter) {
+                    // Đổi màu nền và màu chữ cho chương hiện tại
+                    itemView.setBackgroundColor(itemView.context.getColor(R.color.primary_300)) // Ví dụ: màu xanh
+                    textView.setTextColor(itemView.context.getColor(android.R.color.white)) // Ví dụ: chữ trắng
+                } else {
+                    // Trả về màu nền và màu chữ mặc định
+                    itemView.setBackgroundColor(itemView.context.getColor(android.R.color.white))
+                    textView.setTextColor(itemView.context.getColor(android.R.color.black))
+                }
+
+                textView.setPadding(32, 24, 32, 24)
+
+                itemView.setOnClickListener {
+                    onItemClick(tocReference)
+                }
+            }
         }
     }
 }

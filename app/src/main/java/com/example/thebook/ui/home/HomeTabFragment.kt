@@ -63,15 +63,15 @@ class HomeTabFragment : Fragment() {
             homeViewModel.books.collect { resource ->
                 when (resource) {
                     is Resource.Loading -> {
-//                        binding.progressBarLoading.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.VISIBLE
 
                     }
                     is Resource.Success -> {
-//                        binding.progressBarLoading.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
                         bookAdapter.submitList(resource.data)
                     }
                     is Resource.Error -> {
-//                        binding.progressBarLoading.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
                         // Hiển thị thông báo lỗi
                          Toast.makeText(context, "Error: ${resource.exception}", Toast.LENGTH_LONG).show()
                     }
@@ -84,31 +84,4 @@ class HomeTabFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-//    private fun showLogoutConfirmationDialog() {
-//        val dialogBinding = CustomDialogBinding.inflate(LayoutInflater.from(requireContext()))
-//        val dialog = AlertDialog.Builder(requireContext())
-//            .setView(dialogBinding.root)
-//            .setCancelable(true) // Cho phép đóng dialog bằng nút Back
-//            .create()
-//
-//        // Xử lý nút Yes
-//        dialogBinding.btnYes.setOnClickListener {
-//            viewModel.logout()
-//            Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show()
-//            findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
-//            dialog.dismiss()
-//        }
-//
-//        // Xử lý nút No
-//        dialogBinding.btnNo.setOnClickListener {
-//            dialog.dismiss()
-//        }
-//
-//        // Hiển thị dialog với nền trong suốt
-//        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-//        dialog.show()
-//    }
-
-
 }

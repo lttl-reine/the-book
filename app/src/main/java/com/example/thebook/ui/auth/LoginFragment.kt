@@ -66,7 +66,6 @@ class LoginFragment : Fragment() {
                     Log.d(TAG, "Login successful: ${resource.data.email}")
                     binding.progressBar.visibility = View.GONE
                     binding.btnLogin.isEnabled = true
-                    Toast.makeText(context, "Đăng nhập thành công: ${resource.data.email}", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 }
                 is Resource.Error -> {
