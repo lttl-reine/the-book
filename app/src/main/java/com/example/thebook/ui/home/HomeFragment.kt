@@ -14,17 +14,16 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeFragment : Fragment() {
     private lateinit var navController: NavController
+    private lateinit var bottomNavigationView: BottomNavigationView // Khai báo biến này
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
@@ -34,13 +33,19 @@ class HomeFragment : Fragment() {
         val navHostFragment = childFragmentManager.findFragmentById(R.id.bottom_nav_host) as NavHostFragment
         navController = navHostFragment.navController
 
-        val bottomNavigationView = view.findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView = view.findViewById<BottomNavigationView>(R.id.bottom_navigation) // Gán giá trị
         bottomNavigationView.setupWithNavController(navController)
 
+        // Hide bottom navigation menu for some fragment
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.addBookFragment, R.id.bookDetailFragment -> {
-                    bottomNavigationView.menu.findItem(R.id.homeTabFragment)?.isChecked = true
+                R.id.addBookFragment,
+                R.id.bookDetailFragment,
+                R.id.readerFragment -> {
+                    hideBottomNavigationView()
+                }
+                else -> {
+                    showBottomNavigationView()
                 }
             }
         }
@@ -49,9 +54,32 @@ class HomeFragment : Fragment() {
             if (navController.currentDestination?.id != R.id.homeTabFragment) {
                 navController.navigate(R.id.homeTabFragment)
             } else {
-                requireActivity().finish() // Thoát ứng dụng nếu ở homeTabFragment
+                requireActivity().finish()
             }
         }
     }
 
+    // Hide BottomNavigationView
+    private fun hideBottomNavigationView() {
+        if (bottomNavigationView.visibility == View.VISIBLE) {
+            bottomNavigationView.animate()
+                .translationY(bottomNavigationView.height.toFloat())
+                .setDuration(200)
+                .withEndAction {
+                    bottomNavigationView.visibility = View.GONE
+                }
+                .start()
+        }
+    }
+
+    // Hàm để hiện BottomNavigationView
+    private fun showBottomNavigationView() {
+        if (bottomNavigationView.visibility == View.GONE) {
+            bottomNavigationView.visibility = View.VISIBLE
+            bottomNavigationView.animate()
+                .translationY(0f)
+                .setDuration(200)
+                .start()
+        }
+    }
 }

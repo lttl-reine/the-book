@@ -1,7 +1,7 @@
 package com.example.thebook.data.repository
 
 import com.example.thebook.data.model.Book
-import com.example.thebook.util.Resource
+import com.example.thebook.utils.Resource
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference

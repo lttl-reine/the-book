@@ -1,8 +1,22 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.TheBook" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary_500</item>
+        <item name="colorPrimaryVariant">@color/primary_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Surface and background color -->
+        <item name="colorSurface">@color/grey_100</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnPrimarySurface">@color/black</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/secondary_500</item>
+        <item name="colorSecondaryVariant">@color/secondary_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Ripple effect for selectable items -->
+
     </style>
 
     <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">

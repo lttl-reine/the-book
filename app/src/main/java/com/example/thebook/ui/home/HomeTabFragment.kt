@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
-import com.example.thebook.util.Resource
+import com.example.thebook.utils.Resource
 import androidx.lifecycle.lifecycleScope
 import com.example.thebook.databinding.FragmentHomeTabBinding
 

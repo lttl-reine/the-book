@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -21,7 +20,7 @@ import com.example.thebook.data.model.Category
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentBookDetailBinding
-import com.example.thebook.util.Resource
+import com.example.thebook.utils.Resource
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -36,6 +35,8 @@ class BookDetailFragment : Fragment() {
     private val bookDetailViewModel: BookDetailViewModel by viewModels {
         BookDetailViewModelFactory(BookRepository(), SharedDataRepository(), this)
     }
+
+    private var bookUrl : String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +81,10 @@ class BookDetailFragment : Fragment() {
         // Handle start reading button
         binding.btnStartReading.setOnClickListener {
             Toast.makeText(context, "Start Reading clicked", Toast.LENGTH_LONG).show()
+            val action = BookDetailFragmentDirections.actionBookDetailFragmentToReaderFragment(
+                bookUrl!!
+            )
+            findNavController().navigate(action)
             //
         }
 
@@ -161,6 +166,7 @@ class BookDetailFragment : Fragment() {
                 }
             }
 
+            bookUrl = book.bookFileUrl
 
             // Ratings & Reviews
             tvRating.text = String.format("%.1f/5", book.averageRating)
