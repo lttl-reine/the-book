@@ -182,21 +182,21 @@ class ReaderFragment : Fragment() {
     }
 
 
+    // Cập nhật setupTocPanel method
     private fun setupTocPanel() {
-        // Tính toán chiều rộng 40% màn hình cho panel TOC
+        // Tính toán chiều rộng 50% màn hình cho panel TOC
         val displayMetrics = resources.displayMetrics
         val screenWidth = displayMetrics.widthPixels
         val panelWidth = (screenWidth * 0.5).toInt()
 
-        // Thiết lập chiều rộng cho panel
         val layoutParams = binding.tocPanel.layoutParams
         layoutParams.width = panelWidth
         binding.tocPanel.layoutParams = layoutParams
 
-        // Khởi tạo adapter cho TOC
+        // Khởi tạo adapter với EnhancedTocItem
         tocAdapter = TocAdapter { tocItem ->
-            // Xử lý khi nhấn vào một item trong TOC
-            navigateToChapterByTitle(tocItem.title)
+            // Navigate đến chapter theo index
+            displayChapter(tocItem.index)
             hideTocPanel()
         }
 
@@ -205,21 +205,18 @@ class ReaderFragment : Fragment() {
             adapter = tocAdapter
         }
 
-        // Ẩn panel TOC ban đầu
+        // Các setup khác giữ nguyên...
         binding.tocPanel.visibility = View.GONE
         binding.tocOverlay.visibility = View.GONE
 
-        // Xử lý nhấn vào overlay để ẩn panel
         binding.tocOverlay.setOnClickListener {
             hideTocPanel()
         }
 
-        // Xử lý nhấn vào nút đóng trong header
         binding.ivCloseToc.setOnClickListener {
             hideTocPanel()
         }
 
-        // Xử lý nhấn vào content container để ẩn panel
         binding.epubContentContainer.setOnClickListener {
             if (isTocPanelVisible) {
                 hideTocPanel()
@@ -239,29 +236,27 @@ class ReaderFragment : Fragment() {
 
     private fun showTocPanel() {
         currentBook?.let { book ->
-            val tocReferences = book.tableOfContents.tocReferences
-            if (tocReferences.isNotEmpty()) {
-                tocAdapter.updateTocList(tocReferences, currentChapterHref)
+            // Sử dụng enhanced TOC thay vì TOC gốc
+            val enhancedTocList = createEnhancedTocList()
 
-                // Đảm bảo overlay được reset hoàn toàn
-                binding.tocOverlay.clearAnimation() // Xóa bất kỳ animation nào đang chạy
-                binding.tocPanel.clearAnimation()   // Xóa bất kỳ animation nào đang chạy
+            if (enhancedTocList.isNotEmpty()) {
+                tocAdapter.updateTocList(enhancedTocList, currentChapterIndex)
 
-                // Reset trạng thái của overlay
+                // Animation code giữ nguyên...
+                binding.tocOverlay.clearAnimation()
+                binding.tocPanel.clearAnimation()
+
                 binding.tocOverlay.alpha = 0f
                 binding.tocOverlay.visibility = View.VISIBLE
 
-                // Reset trạng thái của panel
                 binding.tocPanel.visibility = View.VISIBLE
                 binding.tocPanel.translationX = binding.tocPanel.width.toFloat()
 
-                // Sử dụng post để đảm bảo UI được cập nhật trước khi animation
                 binding.root.post {
-                    // Bắt đầu animation
                     binding.tocOverlay.animate()
                         .alpha(0.5f)
                         .setDuration(300)
-                        .setListener(null) // Xóa listener cũ nếu có
+                        .setListener(null)
                         .start()
 
                     binding.tocPanel.animate()
@@ -275,7 +270,7 @@ class ReaderFragment : Fragment() {
                         .start()
                 }
             } else {
-                Toast.makeText(context, "Sách không có mục lục", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Không có nội dung để hiển thị", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -496,6 +491,7 @@ class ReaderFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateProgressControls() {
         currentBook?.let { book ->
             val totalChapters = book.spine.spineReferences.size
@@ -608,6 +604,83 @@ class ReaderFragment : Fragment() {
         }
     }
 
+    // Cập nhật method để tạo enhanced TOC
+    private fun createEnhancedTocList(): List<EnhancedTocItem> {
+        val enhancedTocList = mutableListOf<EnhancedTocItem>()
+
+        currentBook?.let { book ->
+            // Tạo map từ href đến TOC title gốc
+            val originalTocMap = mutableMapOf<String, String>()
+            book.tableOfContents.tocReferences.forEach { tocRef ->
+                originalTocMap[tocRef.resourceId] = tocRef.title
+            }
+
+            // Duyệt qua tất cả spine references
+            book.spine.spineReferences.forEachIndexed { index, spineRef ->
+                val href = spineRef.resource.href
+
+                // Kiểm tra xem có trong TOC gốc không
+                val originalTitle = originalTocMap[href]
+
+                val title = if (originalTitle != null) {
+                    originalTitle
+                } else {
+                    // Tạo title từ filename hoặc extract từ HTML
+                    extractTitleFromResource(spineRef.resource) ?: "Chương ${index + 1}"
+                }
+
+                enhancedTocList.add(
+                    EnhancedTocItem(
+                        title = title,
+                        href = href,
+                        index = index,
+                        isFromOriginalToc = originalTitle != null
+                    )
+                )
+            }
+        }
+
+        return enhancedTocList
+    }
+
+    // Method để extract title từ HTML content
+    private fun extractTitleFromResource(resource: Resource): String? {
+        return try {
+            val htmlContent = String(resource.data, Charsets.UTF_8)
+
+            // Thử tìm title tag
+            val titleRegex = "<title[^>]*>([^<]+)</title>".toRegex(RegexOption.IGNORE_CASE)
+            val titleMatch = titleRegex.find(htmlContent)
+            if (titleMatch != null) {
+                return titleMatch.groupValues[1].trim()
+            }
+
+            // Thử tìm h1 tag đầu tiên
+            val h1Regex = "<h1[^>]*>([^<]+)</h1>".toRegex(RegexOption.IGNORE_CASE)
+            val h1Match = h1Regex.find(htmlContent)
+            if (h1Match != null) {
+                return h1Match.groupValues[1].trim()
+            }
+
+            // Thử tìm h2 tag đầu tiên
+            val h2Regex = "<h2[^>]*>([^<]+)</h2>".toRegex(RegexOption.IGNORE_CASE)
+            val h2Match = h2Regex.find(htmlContent)
+            if (h2Match != null) {
+                return h2Match.groupValues[1].trim()
+            }
+
+            // Fallback: sử dụng filename
+            val filename = resource.href.substringAfterLast("/").substringBeforeLast(".")
+            filename.replace("_", " ").replace("-", " ")
+                .split(" ").joinToString(" ") { word ->
+                    word.replaceFirstChar { it.uppercase() }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting title from resource: ${e.message}")
+            null
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         webView.destroy()
@@ -633,61 +706,4 @@ class ReaderFragment : Fragment() {
         }
     }
 
-    // TOC Adapter class
-    private class TocAdapter(
-        private val onItemClick: (TOCReference) -> Unit
-    ) : RecyclerView.Adapter<TocAdapter.TocViewHolder>() {
-
-        private var tocList: List<TOCReference> = emptyList()
-        private var currentChapterHref: String? = null // Biến mới để lưu href của chương hiện tại
-
-        fun updateTocList(newTocList: List<TOCReference>, currentHref: String? = null) {
-            tocList = newTocList
-            currentChapterHref = currentHref
-            notifyDataSetChanged()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TocViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(android.R.layout.simple_list_item_1, parent, false)
-            return TocViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: TocViewHolder, position: Int) {
-            holder.bind(tocList[position], currentChapterHref) // Truyền currentChapterHref vào bind
-        }
-
-        override fun getItemCount(): Int = tocList.size
-
-        inner class TocViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val textView = itemView.findViewById<android.widget.TextView>(android.R.id.text1)
-
-            fun bind(tocReference: TOCReference, currentHref: String?) {
-                textView.text = tocReference.title
-
-                // Kiểm tra nếu đây là chương hiện tại
-                val isCurrentChapter = currentHref != null &&
-                        (tocReference.resourceId == currentHref ||
-                                tocReference.resource.href == currentHref ||
-                                currentHref.contains(tocReference.resourceId ?: "") ||
-                                currentHref.contains(tocReference.resource.href ?: ""))
-
-                if (isCurrentChapter) {
-                    // Đổi màu nền và màu chữ cho chương hiện tại
-                    itemView.setBackgroundColor(itemView.context.getColor(R.color.primary_300)) // Ví dụ: màu xanh
-                    textView.setTextColor(itemView.context.getColor(android.R.color.white)) // Ví dụ: chữ trắng
-                } else {
-                    // Trả về màu nền và màu chữ mặc định
-                    itemView.setBackgroundColor(itemView.context.getColor(android.R.color.white))
-                    textView.setTextColor(itemView.context.getColor(android.R.color.black))
-                }
-
-                textView.setPadding(32, 24, 32, 24)
-
-                itemView.setOnClickListener {
-                    onItemClick(tocReference)
-                }
-            }
-        }
-    }
 }

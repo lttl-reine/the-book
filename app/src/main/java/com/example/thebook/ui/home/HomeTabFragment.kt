@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
@@ -38,8 +41,22 @@ class HomeTabFragment : Fragment() {
         binding.fabAddBook.setOnClickListener{
             findNavController().navigate(R.id.action_homeTabFragment_to_addBookFragment)
         }
+        setupSystemUI()
         setupRecyclerView()
         observeBooks()
+    }
+
+    private fun setupSystemUI() {
+        requireActivity().window.apply {
+            // Change status bar background color
+            statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary_500)
+        }
+
+        // WindowInsetsCompat to handle padding status bar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            insets
+        }
     }
 
     private fun setupRecyclerView() {
