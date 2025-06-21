@@ -24,7 +24,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentReaderBinding
 import com.example.thebook.utils.EpubCacheManager
@@ -32,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.siegmann.epublib.domain.Resource
-import nl.siegmann.epublib.domain.TOCReference
 import nl.siegmann.epublib.epub.EpubReader
 import java.io.*
 import java.net.HttpURLConnection
@@ -56,6 +54,17 @@ class ReaderFragment : Fragment() {
     private lateinit var tocAdapter: TocAdapter
     private var currentChapterHref: String? = null
 
+    // Reader settings
+    private var isSettingsPanelVisible = false
+    private var currentFontSize = 16 // sp
+    private var currentTheme = "light" // light, dark, sepia
+    private var currentFontFamily = "default" // default, serif, sans-serif
+
+    // Scroll tracking
+    private var isUserScrolling = false
+    private var currentScrollPosition = 0
+    private var maxScrollPosition = 100
+
     private lateinit var gestureDetector: GestureDetector
 
     override fun onCreateView(
@@ -73,7 +82,7 @@ class ReaderFragment : Fragment() {
         gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent): Boolean {
                 // Handle when tap the screen
-                if (!isTocPanelVisible) { // Check if TOC is hide/ unhidden
+                if (!isTocPanelVisible && !isSettingsPanelVisible) {
                     toggleControlsVisibility()
                 }
                 return true
@@ -87,25 +96,22 @@ class ReaderFragment : Fragment() {
         }
 
         setupSystemUI()
-
         setupToolbar()
         setupWebView()
         setupTocPanel()
+        setupSettingsPanel()
         loadEpubBook()
         setupBottomControls()
     }
 
     private fun setupSystemUI() {
         requireActivity().window.apply {
-            // Change status bar background color
             statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary_500)
         }
 
-        // WindowInsetsCompat to handle padding status bar
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            // Apply padding for AppBarLayout to not been overlay by status bar
             binding.appBarLayout.setPadding(
                 systemBars.left,
                 systemBars.top,
@@ -113,12 +119,11 @@ class ReaderFragment : Fragment() {
                 0
             )
 
-            // Apply padding for bottom controls to not been overlay by navigation bar
             binding.bottomControlsOverlay.setPadding(
                 binding.bottomControlsOverlay.paddingLeft,
                 binding.bottomControlsOverlay.paddingTop,
                 binding.bottomControlsOverlay.paddingRight,
-                systemBars.bottom + 16 // 16dp is root padding
+                systemBars.bottom + 16
             )
 
             insets
@@ -128,20 +133,19 @@ class ReaderFragment : Fragment() {
     private fun setupToolbar() {
         (activity as AppCompatActivity).setSupportActionBar(binding.toolbarReader)
         (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true) // back button
+            setDisplayHomeAsUpEnabled(true)
             title = ""
         }
         binding.toolbarReader.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
 
-        // Handle open/ hidden table of content list
         binding.ivToc.setOnClickListener {
             toggleTocPanel()
         }
 
         binding.ivSettings.setOnClickListener {
-            showReaderSettings()
+            toggleSettingsPanel()
         }
     }
 
@@ -156,16 +160,17 @@ class ReaderFragment : Fragment() {
             allowContentAccess = true
         }
 
+        // DI CHUYỂN DÒNG NÀY ĐẾN ĐÂY
+        webView.addJavascriptInterface(JavaScriptInterface(), "Android")
+        Log.d(TAG, "JavaScriptInterface 'Android' added in setupWebView().")
+
         webView.webViewClient = object : WebViewClient() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                // Xử lý navigation trong EPUB
                 url?.let {
                     if (it.contains("#")) {
-                        // Anchor link trong cùng trang
                         return false
                     } else if (it.endsWith(".html") || it.endsWith(".xhtml")) {
-                        // Link đến chapter khác
                         navigateToChapterByHref(it)
                         return true
                     }
@@ -175,16 +180,128 @@ class ReaderFragment : Fragment() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // Có thể thêm JavaScript để customize hiển thị
+                Log.d(TAG, "WebViewClient: onPageFinished for URL: $url")
                 injectCustomCSS()
+                // Chỉ gọi setupScrollTracking để inject JS, không thêm lại Interface
+                setupScrollTracking()
             }
         }
     }
 
+    private fun setupScrollTracking() {
+        val js = """
+        javascript:(function() {
+            // Log giá trị để kiểm tra khi đối tượng Android được định nghĩa
+            console.log("Checking if Android is defined at script start:", typeof Android !== 'undefined');
 
-    // Cập nhật setupTocPanel method
+            function updateScrollPosition() {
+                var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                var scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                var scrollPercent = scrollHeight > 0 ? Math.round((scrollTop / scrollHeight) * 100) : 0;
+
+                console.log("Scroll: scrollTop=" + scrollTop + ", scrollHeight=" + scrollHeight + ", window.innerHeight=" + window.innerHeight + ", scrollPercent=" + scrollPercent);
+
+                // Communicate with Android for progress update
+                if (typeof Android !== 'undefined' && Android.onScrollChanged) {
+                    Android.onScrollChanged(scrollPercent, scrollTop, scrollHeight);
+                } else {
+                    console.error("Android.onScrollChanged is not available!");
+                }
+
+                // Logic cho chương quá ngắn (tự động chuyển chương tiếp theo)
+                if (scrollHeight <= 0 && typeof Android !== 'undefined' && Android.onReachedBottom) {
+                    console.log("Chapter is too short to scroll. Automatically calling onReachedBottom().");
+                    Android.onReachedBottom();
+                }
+            }
+
+            // Scroll event listener
+            window.addEventListener('scroll', function() {
+                updateScrollPosition(); // Cập nhật vị trí cuộn ngay lập tức
+
+                var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                var scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+                // Kiểm tra nếu đã cuộn đến cuối trang
+                if (scrollHeight > 0 && (scrollTop >= scrollHeight - 5)) { // Ngưỡng 5px từ cuối
+                    console.log("Reached bottom by scrolling! Calling Android.onReachedBottom()");
+                    if (typeof Android !== 'undefined' && Android.onReachedBottom) {
+                        Android.onReachedBottom();
+                    } else {
+                        console.error("Android.onReachedBottom is not available!");
+                    }
+                }
+                // --- BỔ SUNG LOGIC NÀY CHO CHUYỂN CHƯƠNG TRƯỚC ---
+                // Kiểm tra nếu đã cuộn đến đầu trang
+                else if (scrollTop <= 5) { // Ngưỡng 5px từ đầu
+                    console.log("Reached top by scrolling! Calling Android.onReachedTop()");
+                    if (typeof Android !== 'undefined' && Android.onReachedTop) {
+                        Android.onReachedTop();
+                    } else {
+                        console.error("Android.onReachedTop is not available!");
+                    }
+                }
+                // --------------------------------------------------
+            });
+
+            // Initial position and check for short chapters
+            updateScrollPosition();
+        })()
+    """.trimIndent()
+
+        webView.post {
+            webView.evaluateJavascript(js, null)
+            Log.d(TAG, "JavaScript for scroll tracking evaluated via webView.post().")
+        }
+    }
+
+    inner class JavaScriptInterface {
+        @android.webkit.JavascriptInterface
+        fun onScrollChanged(percent: Int, scrollTop: Int, scrollHeight: Int) {
+            activity?.runOnUiThread {
+                Log.d(TAG, "JS: onScrollChanged - percent: $percent, scrollTop: $scrollTop, scrollHeight: $scrollHeight")
+                if (!isUserScrolling) {
+                    binding.seekBarPageProgress.progress = percent
+                    currentScrollPosition = scrollTop
+                    maxScrollPosition = scrollHeight
+                }
+            }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun onReachedBottom() {
+            activity?.runOnUiThread {
+                Log.d(TAG, "JS: onReachedBottom() called from WebView!")
+                currentBook?.let { book ->
+                    if (currentChapterIndex < book.spine.spineReferences.size - 1) {
+                        Log.d(TAG, "Navigating to next chapter: ${currentChapterIndex + 1}")
+                        displayChapter(currentChapterIndex + 1)
+                    } else {
+                        Log.d(TAG, "Already at last chapter.")
+                        // Có thể hiển thị Toast "Đã hết sách" hoặc tương tự
+                    }
+                }
+            }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun onReachedTop() {
+            activity?.runOnUiThread {
+                // Auto navigate to previous chapter if available
+                currentBook?.let {
+                    if (currentChapterIndex > 0) {
+                        displayChapter(currentChapterIndex - 1)
+                    } else {
+                        Log.d(TAG, "Already at first chapter.")
+                        // Tùy chọn: Hiển thị Toast "Đã là chương đầu tiên"
+                        // Toast.makeText(context, "Đã là chương đầu tiên", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
     private fun setupTocPanel() {
-        // Tính toán chiều rộng 50% màn hình cho panel TOC
         val displayMetrics = resources.displayMetrics
         val screenWidth = displayMetrics.widthPixels
         val panelWidth = (screenWidth * 0.5).toInt()
@@ -193,9 +310,7 @@ class ReaderFragment : Fragment() {
         layoutParams.width = panelWidth
         binding.tocPanel.layoutParams = layoutParams
 
-        // Khởi tạo adapter với EnhancedTocItem
         tocAdapter = TocAdapter { tocItem ->
-            // Navigate đến chapter theo index
             displayChapter(tocItem.index)
             hideTocPanel()
         }
@@ -205,7 +320,6 @@ class ReaderFragment : Fragment() {
             adapter = tocAdapter
         }
 
-        // Các setup khác giữ nguyên...
         binding.tocPanel.visibility = View.GONE
         binding.tocOverlay.visibility = View.GONE
 
@@ -220,29 +334,97 @@ class ReaderFragment : Fragment() {
         binding.epubContentContainer.setOnClickListener {
             if (isTocPanelVisible) {
                 hideTocPanel()
+            } else if (isSettingsPanelVisible) {
+                hideSettingsPanel()
             } else {
                 toggleControlsVisibility()
             }
         }
     }
 
+    private fun setupSettingsPanel() {
+        // Font size controls
+        binding.btnFontSizeDecrease.setOnClickListener {
+            if (currentFontSize > 12) {
+                currentFontSize -= 2
+                updateFontSettings()
+            }
+        }
+
+        binding.btnFontSizeIncrease.setOnClickListener {
+            if (currentFontSize < 24) {
+                currentFontSize += 2
+                updateFontSettings()
+            }
+        }
+
+        // Font family controls
+        binding.rgFontFamily.setOnCheckedChangeListener { _, checkedId ->
+            currentFontFamily = when (checkedId) {
+                R.id.rb_font_serif -> "serif"
+                R.id.rb_font_sans -> "sans-serif"
+                else -> "default"
+            }
+            updateFontSettings()
+        }
+
+        // Theme controls
+        binding.rgTheme.setOnCheckedChangeListener { _, checkedId ->
+            currentTheme = when (checkedId) {
+                R.id.rb_theme_dark -> "dark"
+                R.id.rb_theme_sepia -> "sepia"
+                else -> "light"
+            }
+            updateThemeSettings()
+        }
+
+        binding.settingsOverlay.setOnClickListener {
+            hideSettingsPanel()
+        }
+
+        binding.ivCloseSettings.setOnClickListener {
+            hideSettingsPanel()
+        }
+    }
+
+    private fun updateFontSettings() {
+        binding.tvCurrentFontSize.text = "${currentFontSize}sp"
+        injectCustomCSS()
+    }
+
+    private fun updateThemeSettings() {
+        injectCustomCSS()
+    }
+
     private fun toggleTocPanel() {
         if (isTocPanelVisible) {
             hideTocPanel()
         } else {
+            if (isSettingsPanelVisible) {
+                hideSettingsPanel()
+            }
             showTocPanel()
+        }
+    }
+
+    private fun toggleSettingsPanel() {
+        if (isSettingsPanelVisible) {
+            hideSettingsPanel()
+        } else {
+            if (isTocPanelVisible) {
+                hideTocPanel()
+            }
+            showSettingsPanel()
         }
     }
 
     private fun showTocPanel() {
         currentBook?.let { book ->
-            // Sử dụng enhanced TOC thay vì TOC gốc
             val enhancedTocList = createEnhancedTocList()
 
             if (enhancedTocList.isNotEmpty()) {
                 tocAdapter.updateTocList(enhancedTocList, currentChapterIndex)
 
-                // Animation code giữ nguyên...
                 binding.tocOverlay.clearAnimation()
                 binding.tocPanel.clearAnimation()
 
@@ -276,7 +458,6 @@ class ReaderFragment : Fragment() {
     }
 
     private fun hideTocPanel() {
-        // Xóa bất kỳ animation nào đang chạy
         binding.tocOverlay.clearAnimation()
         binding.tocPanel.clearAnimation()
 
@@ -286,7 +467,6 @@ class ReaderFragment : Fragment() {
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     binding.tocOverlay.visibility = View.GONE
-                    // Không cần reset alpha ở đây vì sẽ được reset trong showTocPanel
                 }
             })
             .start()
@@ -303,22 +483,59 @@ class ReaderFragment : Fragment() {
             .start()
     }
 
-    private fun navigateToChapterByTitle(title: String) {
-        currentBook?.let { book ->
-            // Find chapter by title
-            book.tableOfContents.tocReferences.forEachIndexed { _, tocRef ->
-                if (tocRef.title == title) {
-                    // Find index in spine
-                    book.spine.spineReferences.forEachIndexed { index, spineRef ->
-                        if (spineRef.resource.href == tocRef.resourceId ||
-                            spineRef.resource.href.contains(tocRef.resourceId)) {
-                            displayChapter(index)
-                            return
-                        }
+    private fun showSettingsPanel() {
+        binding.settingsOverlay.clearAnimation()
+        binding.settingsPanel.clearAnimation()
+
+        binding.settingsOverlay.alpha = 0f
+        binding.settingsOverlay.visibility = View.VISIBLE
+
+        binding.settingsPanel.visibility = View.VISIBLE
+        binding.settingsPanel.translationY = binding.settingsPanel.height.toFloat()
+
+        binding.root.post {
+            binding.settingsOverlay.animate()
+                .alpha(0.5f)
+                .setDuration(300)
+                .setListener(null)
+                .start()
+
+            binding.settingsPanel.animate()
+                .translationY(0f)
+                .setDuration(300)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        isSettingsPanelVisible = true
                     }
-                }
-            }
+                })
+                .start()
         }
+    }
+
+    private fun hideSettingsPanel() {
+        binding.settingsOverlay.clearAnimation()
+        binding.settingsPanel.clearAnimation()
+
+        binding.settingsOverlay.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.settingsOverlay.visibility = View.GONE
+                }
+            })
+            .start()
+
+        binding.settingsPanel.animate()
+            .translationY(binding.settingsPanel.height.toFloat())
+            .setDuration(300)
+            .setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.settingsPanel.visibility = View.GONE
+                    isSettingsPanelVisible = false
+                }
+            })
+            .start()
     }
 
     private fun loadEpubBook() {
@@ -329,7 +546,6 @@ class ReaderFragment : Fragment() {
             try {
                 val downloadedFile = downloadEpubFile(epubFileUrl, requireContext())
                 if (downloadedFile != null) {
-                    // Giải nén EPUB để có thể truy cập resources (ảnh, CSS, fonts...)
                     extractedEpubDir = extractEpubFile(downloadedFile, requireContext())
 
                     currentBook = withContext(Dispatchers.IO) {
@@ -339,7 +555,9 @@ class ReaderFragment : Fragment() {
                     Log.d(TAG, "Book loaded: ${currentBook?.title}")
 
                     withContext(Dispatchers.Main) {
-                        displayChapter(currentChapterIndex)
+                        // Skip cover page if it exists
+                        val startIndex = findFirstContentChapter()
+                        displayChapter(startIndex)
                         (activity as AppCompatActivity).supportActionBar?.title =
                             currentBook?.title ?: "Sách"
                     }
@@ -359,6 +577,22 @@ class ReaderFragment : Fragment() {
         }
     }
 
+    private fun findFirstContentChapter(): Int {
+        currentBook?.let { book ->
+            book.spine.spineReferences.forEachIndexed { index, spineRef ->
+                val href = spineRef.resource.href.lowercase()
+                // Skip common cover page names
+                if (!href.contains("cover") &&
+                    !href.contains("title") &&
+                    !href.contains("front") &&
+                    !href.contains("copyright")) {
+                    return index
+                }
+            }
+        }
+        return 0
+    }
+
     private fun displayChapter(index: Int) {
         currentBook?.let { book ->
             if (index >= 0 && index < book.spine.spineReferences.size) {
@@ -369,8 +603,6 @@ class ReaderFragment : Fragment() {
 
                 try {
                     var chapterHtml = String(chapterResource.data, Charsets.UTF_8)
-
-                    // Xử lý relative paths cho resources (ảnh, CSS...)
                     chapterHtml = processHtmlContent(chapterHtml, chapterResource.href)
 
                     val baseUrl = if (extractedEpubDir != null) {
@@ -389,29 +621,26 @@ class ReaderFragment : Fragment() {
 
                     currentChapterIndex = index
                     updateProgressControls()
+                    // Reset scroll position for new chapter
+                    binding.seekBarPageProgress.progress = 0
 
                 } catch (e: Exception) {
                     Log.e(TAG, "Error displaying chapter: ${e.message}", e)
                     Toast.makeText(context, "Lỗi hiển thị chương", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                Toast.makeText(context, "Không có chương nào để hiển thị", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun processHtmlContent(html: String, chapterHref: String): String {
-        // Xử lý relative paths trong HTML
         var processedHtml = html
 
-        // Lấy base path của chapter hiện tại
         val chapterBasePath = if (chapterHref.contains("/")) {
             chapterHref.substring(0, chapterHref.lastIndexOf("/") + 1)
         } else {
             ""
         }
 
-        // Xử lý các đường dẫn tương đối cho ảnh và CSS
         processedHtml = processedHtml.replace(
             Regex("""src\s*=\s*["'](?!http)([^"']+)["']"""),
             """src="$chapterBasePath$1""""
@@ -438,24 +667,51 @@ class ReaderFragment : Fragment() {
     }
 
     private fun injectCustomCSS() {
+        val backgroundColor = when (currentTheme) {
+            "dark" -> "#1a1a1a"
+            "sepia" -> "#f4f1e8"
+            else -> "#ffffff"
+        }
+
+        val textColor = when (currentTheme) {
+            "dark" -> "#e0e0e0"
+            "sepia" -> "#5c4f3a"
+            else -> "#333333"
+        }
+
+        val fontFamily = when (currentFontFamily) {
+            "serif" -> "serif"
+            "sans-serif" -> "sans-serif"
+            else -> "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        }
+
         val css = """
             javascript:(function() {
                 var style = document.createElement('style');
                 style.innerHTML = `
                     body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        line-height: 1.6;
-                        margin: 16px;
-                        background-color: #ffffff;
-                        color: #333333;
+                        font-family: $fontFamily !important;
+                        font-size: ${currentFontSize}px !important;
+                        line-height: 1.6 !important;
+                        margin: 16px !important;
+                        background-color: $backgroundColor !important;
+                        color: $textColor !important;
+                        transition: all 0.3s ease !important;
                     }
                     img { 
                         max-width: 100% !important; 
                         height: auto !important; 
                     }
                     p { 
-                        margin-bottom: 1em; 
-                        text-align: justify;
+                        margin-bottom: 1em !important; 
+                        text-align: justify !important;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        color: $textColor !important;
+                        font-family: $fontFamily !important;
+                    }
+                    a {
+                        color: ${if (currentTheme == "dark") "#66b3ff" else "#0066cc"} !important;
                     }
                 `;
                 document.head.appendChild(style);
@@ -468,16 +724,21 @@ class ReaderFragment : Fragment() {
     private fun setupBottomControls() {
         binding.seekBarPageProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser && currentBook != null) {
-                    val totalChapters = currentBook!!.spine.spineReferences.size
-                    val newChapterIndex = (progress * (totalChapters - 1)) / 100
-                    if (newChapterIndex != currentChapterIndex) {
-                        displayChapter(newChapterIndex)
-                    }
+                if (fromUser) {
+                    isUserScrolling = true
+                    // Scroll within current chapter
+                    val scrollPosition = (progress * maxScrollPosition) / 100
+                    webView.evaluateJavascript("window.scrollTo(0, $scrollPosition);", null)
                 }
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isUserScrolling = true
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                isUserScrolling = false
+            }
         })
     }
 
@@ -496,30 +757,76 @@ class ReaderFragment : Fragment() {
         currentBook?.let { book ->
             val totalChapters = book.spine.spineReferences.size
             if (totalChapters > 0) {
-                val progress = (currentChapterIndex.toFloat() / (totalChapters - 1)) * 100
-                binding.seekBarPageProgress.progress = progress.toInt()
                 binding.tvPageNumber.text = "Chương ${currentChapterIndex + 1} / $totalChapters"
             }
         }
     }
 
-    private fun showTableOfContents() {
+    private fun createEnhancedTocList(): List<EnhancedTocItem> {
+        val enhancedTocList = mutableListOf<EnhancedTocItem>()
+
         currentBook?.let { book ->
-            val tableOfContents = book.tableOfContents.tocReferences
-            if (tableOfContents.isNotEmpty()) {
-                // TODO: Implement TOC dialog
-                val tocItems = tableOfContents.map { it.title }
-                // Hiển thị dialog với danh sách chapters
-                Toast.makeText(context, "TOC: ${tocItems.joinToString(", ")}", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(context, "Sách không có mục lục", Toast.LENGTH_SHORT).show()
+            val originalTocMap = mutableMapOf<String, String>()
+            book.tableOfContents.tocReferences.forEach { tocRef ->
+                originalTocMap[tocRef.resourceId] = tocRef.title
+            }
+
+            book.spine.spineReferences.forEachIndexed { index, spineRef ->
+                val href = spineRef.resource.href
+
+                // Skip cover pages from TOC
+                if (href.lowercase().contains("cover") ||
+                    href.lowercase().contains("title") ||
+                    href.lowercase().contains("front")) {
+                    return@forEachIndexed
+                }
+
+                val originalTitle = originalTocMap[href]
+                val title = if (originalTitle != null) {
+                    originalTitle
+                } else {
+                    extractTitleFromResource(spineRef.resource) ?: "Chương ${index + 1}"
+                }
+
+                enhancedTocList.add(
+                    EnhancedTocItem(
+                        title = title,
+                        href = href,
+                        index = index,
+                        isFromOriginalToc = originalTitle != null
+                    )
+                )
             }
         }
+
+        return enhancedTocList
     }
 
-    private fun showReaderSettings() {
-        // TODO: Implement reader settings (font size, theme, etc.)
-        Toast.makeText(context, "Cài đặt đọc sách", Toast.LENGTH_SHORT).show()
+    private fun extractTitleFromResource(resource: Resource): String? {
+        return try {
+            val htmlContent = String(resource.data, Charsets.UTF_8)
+
+            val h1Regex = "<h1[^>]*>([^<]+)</h1>".toRegex(RegexOption.IGNORE_CASE)
+            val h1Match = h1Regex.find(htmlContent)
+            if (h1Match != null) {
+                return h1Match.groupValues[1].trim()
+            }
+
+            val h2Regex = "<h2[^>]*>([^<]+)</h2>".toRegex(RegexOption.IGNORE_CASE)
+            val h2Match = h2Regex.find(htmlContent)
+            if (h2Match != null) {
+                return h2Match.groupValues[1].trim()
+            }
+
+            val filename = resource.href.substringAfterLast("/").substringBeforeLast(".")
+            filename.replace("_", " ").replace("-", " ")
+                .split(" ").joinToString(" ") { word ->
+                    word.replaceFirstChar { it.uppercase() }
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting title from resource: ${e.message}")
+            null
+        }
     }
 
     private suspend fun downloadEpubFile(url: String, context: Context): File? {
@@ -532,11 +839,7 @@ class ReaderFragment : Fragment() {
 
                 if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val inputStream = connection.inputStream
-
-                    // Sử dụng EpubCacheManager để lấy file tạm
                     val tempEpubFile = EpubCacheManager.getTempEpubFile(context)
-
-                    // Xóa file cũ nếu tồn tại
                     EpubCacheManager.clearTempEpubFile(context)
 
                     val outputStream = FileOutputStream(tempEpubFile)
@@ -569,13 +872,8 @@ class ReaderFragment : Fragment() {
     private suspend fun extractEpubFile(epubFile: File, context: Context): File? {
         return withContext(Dispatchers.IO) {
             try {
-                // Sử dụng EpubCacheManager để lấy thư mục giải nén
                 val extractDir = EpubCacheManager.getTempExtractDir(context)
-
-                // Xóa thư mục cũ nếu tồn tại
                 EpubCacheManager.clearTempExtractDir(context)
-
-                // Tạo thư mục mới
                 extractDir.mkdirs()
 
                 ZipInputStream(FileInputStream(epubFile)).use { zipInputStream ->
@@ -601,83 +899,6 @@ class ReaderFragment : Fragment() {
                 Log.e(TAG, "Error extracting EPUB: ${e.message}", e)
                 null
             }
-        }
-    }
-
-    // Cập nhật method để tạo enhanced TOC
-    private fun createEnhancedTocList(): List<EnhancedTocItem> {
-        val enhancedTocList = mutableListOf<EnhancedTocItem>()
-
-        currentBook?.let { book ->
-            // Tạo map từ href đến TOC title gốc
-            val originalTocMap = mutableMapOf<String, String>()
-            book.tableOfContents.tocReferences.forEach { tocRef ->
-                originalTocMap[tocRef.resourceId] = tocRef.title
-            }
-
-            // Duyệt qua tất cả spine references
-            book.spine.spineReferences.forEachIndexed { index, spineRef ->
-                val href = spineRef.resource.href
-
-                // Kiểm tra xem có trong TOC gốc không
-                val originalTitle = originalTocMap[href]
-
-                val title = if (originalTitle != null) {
-                    originalTitle
-                } else {
-                    // Tạo title từ filename hoặc extract từ HTML
-                    extractTitleFromResource(spineRef.resource) ?: "Chương ${index + 1}"
-                }
-
-                enhancedTocList.add(
-                    EnhancedTocItem(
-                        title = title,
-                        href = href,
-                        index = index,
-                        isFromOriginalToc = originalTitle != null
-                    )
-                )
-            }
-        }
-
-        return enhancedTocList
-    }
-
-    // Method để extract title từ HTML content
-    private fun extractTitleFromResource(resource: Resource): String? {
-        return try {
-            val htmlContent = String(resource.data, Charsets.UTF_8)
-
-            // Thử tìm title tag
-            val titleRegex = "<title[^>]*>([^<]+)</title>".toRegex(RegexOption.IGNORE_CASE)
-            val titleMatch = titleRegex.find(htmlContent)
-            if (titleMatch != null) {
-                return titleMatch.groupValues[1].trim()
-            }
-
-            // Thử tìm h1 tag đầu tiên
-            val h1Regex = "<h1[^>]*>([^<]+)</h1>".toRegex(RegexOption.IGNORE_CASE)
-            val h1Match = h1Regex.find(htmlContent)
-            if (h1Match != null) {
-                return h1Match.groupValues[1].trim()
-            }
-
-            // Thử tìm h2 tag đầu tiên
-            val h2Regex = "<h2[^>]*>([^<]+)</h2>".toRegex(RegexOption.IGNORE_CASE)
-            val h2Match = h2Regex.find(htmlContent)
-            if (h2Match != null) {
-                return h2Match.groupValues[1].trim()
-            }
-
-            // Fallback: sử dụng filename
-            val filename = resource.href.substringAfterLast("/").substringBeforeLast(".")
-            filename.replace("_", " ").replace("-", " ")
-                .split(" ").joinToString(" ") { word ->
-                    word.replaceFirstChar { it.uppercase() }
-                }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error extracting title from resource: ${e.message}")
-            null
         }
     }
 
