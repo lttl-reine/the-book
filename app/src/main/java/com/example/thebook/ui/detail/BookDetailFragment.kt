@@ -221,7 +221,7 @@ class BookDetailFragment : Fragment() {
 
             // Map category id to display name
             val genreDisplayNames = book.genre.mapNotNull { genreName ->
-                category.find { it.name == genreName }?.displayName
+                category.find { it.id == genreName }?.displayName
             }
             tvCategory.text = genreDisplayNames.joinToString(", ")
 

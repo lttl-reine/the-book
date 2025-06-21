@@ -233,9 +233,9 @@ class AddBookFragment : Fragment() {
 
             chip.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
-                    selectedGenres.add(category.name)
+                    selectedGenres.add(category.id)
                 } else {
-                    selectedGenres.remove(category.name)
+                    selectedGenres.remove(category.id)
                 }
                 Log.d(TAG, "Selected Genres: $selectedGenres")
             }

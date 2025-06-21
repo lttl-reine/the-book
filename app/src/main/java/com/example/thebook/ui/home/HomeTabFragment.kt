@@ -11,12 +11,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
 import com.example.thebook.utils.Resource
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.thebook.databinding.FragmentHomeTabBinding
+import kotlinx.coroutines.launch
 
 class HomeTabFragment : Fragment() {
     private var _binding : FragmentHomeTabBinding? = null
@@ -76,21 +79,22 @@ class HomeTabFragment : Fragment() {
     }
 
     private fun observeBooks() {
-        lifecycleScope.launchWhenStarted {
-            homeViewModel.books.collect { resource ->
-                when (resource) {
-                    is Resource.Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch { // Khởi chạy một coroutine trong lifecycleScope
+            repeatOnLifecycle(Lifecycle.State.STARTED) { // Lắng nghe chỉ khi Lifecycle ở trạng thái STARTED trở lên
+                homeViewModel.books.collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
 
-                    }
-                    is Resource.Success -> {
-                        binding.progressBar.visibility = View.GONE
-                        bookAdapter.submitList(resource.data)
-                    }
-                    is Resource.Error -> {
-                        binding.progressBar.visibility = View.GONE
-                        // Hiển thị thông báo lỗi
-                         Toast.makeText(context, "Error: ${resource.exception}", Toast.LENGTH_LONG).show()
+                        }
+                        is Resource.Success -> {
+                            binding.progressBar.visibility = View.GONE
+                            bookAdapter.submitList(resource.data)
+                        }
+                        is Resource.Error -> {
+                            binding.progressBar.visibility = View.GONE
+                            Toast.makeText(context, "Error: ${resource.exception}", Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
             }
