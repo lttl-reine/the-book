@@ -1,85 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:background="?attr/selectableItemBackground">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/img_user_avatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_profile"
-        android:layout_marginEnd="12dp" />
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    android:backgroundTint="@android:color/white">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <!-- Header: User info and rating -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="4dp">
+            android:layout_marginBottom="8dp">
 
+            <!-- User avatar placeholder -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="1dp"
+                android:layout_marginEnd="8dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_profile"
+                    android:scaleType="centerCrop"
+                    android:background="@color/primary_100" />
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- User name -->
             <TextView
-                android:id="@+id/tv_reviewer_name"
+                android:id="@+id/tv_user_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Taylor K."
+                android:text="Người dùng"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
 
+            <!-- Date -->
             <TextView
-                android:id="@+id/tv_review_date"
+                android:id="@+id/tv_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Feb 2025"
+                android:text="01/01/2024"
                 android:textSize="12sp"
                 android:textColor="@android:color/darker_gray" />
 
         </LinearLayout>
 
+        <!-- Rating section -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_star_24"
-                android:layout_marginEnd="1dp" />
-
-            <TextView
-                android:id="@+id/tv_star_rating"
+            <RatingBar
+                android:id="@+id/rating_bar"
+                style="?android:attr/ratingBarStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4.5"
+                android:numStars="5"
+                android:rating="5"
+                android:isIndicator="true"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tv_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5.0"
                 android:textSize="12sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginStart="4dp" />
+                android:textColor="@android:color/darker_gray" />
 
         </LinearLayout>
 
+        <!-- Comment -->
         <TextView
-            android:id="@+id/tv_review_content"
+            android:id="@+id/tv_comment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Thoughtful and practical. This book gave me real, actionable advice to improve my life."
+            android:text="Sách rất hay và bổ ích, tôi rất thích cách tác giả trình bày các ý tưởng."
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:lineSpacingExtra="2dp"
-            android:maxLines="3"
-            android:ellipsize="end" />
+            android:lineSpacingExtra="2dp" />
 
     </LinearLayout>
 
-</LinearLayout>
+</androidx.cardview.widget.CardView>

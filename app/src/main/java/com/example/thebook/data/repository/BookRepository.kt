@@ -2,6 +2,7 @@ package com.example.thebook.data.repository
 
 import android.util.Log
 import com.example.thebook.data.model.Book
+import com.example.thebook.data.model.Review
 import com.example.thebook.utils.Resource
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -17,6 +18,7 @@ class BookRepository {
     private val TAG = "BookRepository"
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val booksRef: DatabaseReference = database.getReference("Books")
+    private val reviewsRef: DatabaseReference = database.getReference("Reviews") // Using Realtime Database for reviews
 
     fun getBooks() : Flow<Resource<List<Book>>> = callbackFlow {
         trySend(Resource.Loading())
@@ -50,7 +52,6 @@ class BookRepository {
             Log.d(TAG, "Closing books listener")
             booksRef.removeEventListener(valueEventListener)
         }
-
     }
 
     fun getBookById(bookId: String) : Flow<Resource<Book>> = callbackFlow {
@@ -76,7 +77,7 @@ class BookRepository {
                 trySend(Resource.Error(error.toException()))
             }
         }
-        // Just liston one time
+        // Just listen one time
         bookRef.addListenerForSingleValueEvent(valueEventListener)
 
         awaitClose {
@@ -111,5 +112,181 @@ class BookRepository {
         awaitClose {
             Log.d(TAG, "Closing save book operation")
         }
+    }
+
+    /**
+     * Add a new review for a book
+     */
+    fun addReview(review: Review, callback: (Boolean, String?) -> Unit) {
+        val newReviewRef = reviewsRef.push()
+        val reviewWithId = review.copy(reviewId = newReviewRef.key ?: UUID.randomUUID().toString(),
+            timestamp = System.currentTimeMillis())
+        newReviewRef.setValue(reviewWithId)
+            .addOnSuccessListener {
+                updateBookRating(review.bookId) { success, error ->
+                    callback(success, error)
+                }
+            }
+            .addOnFailureListener { exception ->
+                callback(false, exception.message)
+            }
+    }
+
+    /**
+     * Get reviews for a specific book
+     */
+    fun getReviewsForBook(
+        bookId: String,
+        limit: Int = 10,
+        callback: (List<Review>?, String?) -> Unit
+    ) {
+        reviewsRef
+            .orderByChild("bookId")
+            .equalTo(bookId)
+            .limitToLast(limit) // Realtime Database uses limitToLast for descending order
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val reviews = mutableListOf<Review>()
+                    for (childSnapshot in snapshot.children) {
+                        val review = childSnapshot.getValue(Review::class.java)
+                        review?.let {
+                            it.reviewId = childSnapshot.key ?: "" // Set the reviewId from the key
+                            reviews.add(it)
+                        }
+                    }
+                    // Since limitToLast gets the "last" (most recent if ordered by timestamp), reverse if needed
+                    // to match DESCENDING order visually, but timestamp sorting isn't direct in queries.
+                    // You might need to sort in-memory if strict timestamp DESC is required.
+                    callback(reviews.reversed(), null) // Reverse to get most recent first if pushed by timestamp
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    callback(null, error.message)
+                }
+            })
+    }
+
+    /**
+     * Check if user has already reviewed this book
+     */
+    fun hasUserReviewed(
+        bookId: String,
+        userId: String,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        reviewsRef
+            .orderByChild("bookId")
+            .equalTo(bookId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var hasReviewed = false
+                    for (childSnapshot in snapshot.children) {
+                        val review = childSnapshot.getValue(Review::class.java)
+                        if (review?.userId == userId) {
+                            hasReviewed = true
+                            break
+                        }
+                    }
+                    callback(hasReviewed, null)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    callback(false, error.message)
+                }
+            })
+    }
+
+    /**
+     * Update book's average rating and total ratings count
+     */
+    private fun updateBookRating(bookId: String, callback: (Boolean, String?) -> Unit) {
+        reviewsRef
+            .orderByChild("bookId")
+            .equalTo(bookId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val reviews = mutableListOf<Review>()
+                    for (childSnapshot in snapshot.children) {
+                        val review = childSnapshot.getValue(Review::class.java)
+                        review?.let { reviews.add(it) }
+                    }
+
+                    if (reviews.isNotEmpty()) {
+                        val averageRating = reviews.map { it.rating }.average()
+                        val totalRatings = reviews.size
+
+                        // Update book document in the 'Books' node
+                        val bookRef = database.getReference("Books").child(bookId)
+                        bookRef.updateChildren(
+                            mapOf(
+                                "averageRating" to averageRating,
+                                "totalRatings" to totalRatings
+                            )
+                        ).addOnSuccessListener {
+                            callback(true, null)
+                        }.addOnFailureListener { exception ->
+                            callback(false, exception.message)
+                        }
+                    } else {
+                        // If no reviews, set ratings to default
+                        val bookRef = database.getReference("Books").child(bookId)
+                        bookRef.updateChildren(
+                            mapOf(
+                                "averageRating" to 0.0,
+                                "totalRatings" to 0
+                            )
+                        ).addOnSuccessListener {
+                            callback(true, null)
+                        }.addOnFailureListener { exception ->
+                            callback(false, exception.message)
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    callback(false, error.message)
+                }
+            })
+    }
+
+    /**
+     * Delete a review (for moderation or user request)
+     */
+    fun deleteReview(
+        bookId: String,
+        userId: String,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        reviewsRef
+            .orderByChild("bookId")
+            .equalTo(bookId)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var reviewFound = false
+                    for (childSnapshot in snapshot.children) {
+                        val review = childSnapshot.getValue(Review::class.java)
+                        if (review?.userId == userId) {
+                            childSnapshot.ref.removeValue()
+                                .addOnSuccessListener {
+                                    updateBookRating(bookId) { success, error ->
+                                        callback(success, error)
+                                    }
+                                }
+                                .addOnFailureListener { exception ->
+                                    callback(false, exception.message)
+                                }
+                            reviewFound = true
+                            break
+                        }
+                    }
+                    if (!reviewFound) {
+                        callback(false, "Review not found")
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    callback(false, error.message)
+                }
+            })
     }
 }

@@ -13,14 +13,17 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Category
+import com.example.thebook.data.model.Review
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentBookDetailBinding
 import com.example.thebook.utils.Resource
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -37,6 +40,9 @@ class BookDetailFragment : Fragment() {
     }
 
     private var bookUrl : String? = null
+    private lateinit var reviewAdapter: ReviewAdapter
+    private val bookRepository = BookRepository()
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,7 +57,9 @@ class BookDetailFragment : Fragment() {
         Log.d(TAG, "bookId = ${args.bookId}")
 
         setupUI()
+        setupRecyclerView()
         observeBookDetails()
+        loadReviews()
         bookDetailViewModel.loadBook(args.bookId)
     }
 
@@ -81,19 +89,91 @@ class BookDetailFragment : Fragment() {
                 bookUrl!!
             )
             findNavController().navigate(action)
-            //
         }
 
         // Handle add to library button
         binding.btnAddLibrary.setOnClickListener {
             Toast.makeText(context, "Add to library clicked", Toast.LENGTH_LONG).show()
-            //
         }
 
-        binding.imgBookCover.setBackgroundResource(R.drawable.book_cover_placeholder) // Đặt placeholder
+        // Handle write first review button
+        binding.btnWriteFirstReview.setOnClickListener {
+            showWriteReviewDialog()
+        }
+        // Handle write review button
+        binding.btnWriteReview.setOnClickListener {
+            showWriteReviewDialog()
+        }
 
-        // Star icons
+        // Handle see all reviews
+        binding.tvSeeAllReviews.setOnClickListener {
+            // Navigate to all reviews screen
+            Toast.makeText(context, "See all reviews clicked", Toast.LENGTH_SHORT).show()
+        }
 
+        binding.imgBookCover.setBackgroundResource(R.drawable.book_cover_placeholder)
+    }
+
+    private fun setupRecyclerView() {
+        reviewAdapter = ReviewAdapter()
+        binding.rvReviews.apply {
+            adapter = reviewAdapter
+            layoutManager = LinearLayoutManager(context)
+            isNestedScrollingEnabled = false
+        }
+    }
+
+    private fun showWriteReviewDialog() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(context, "Vui lòng đăng nhập để viết đánh giá", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Check if user has already reviewed this book
+        bookRepository.hasUserReviewed(args.bookId, currentUser.uid) { hasReviewed, error ->
+            activity?.runOnUiThread {
+                if (error != null) {
+                    Toast.makeText(context, "Lỗi: $error", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+
+                if (hasReviewed) {
+                    Toast.makeText(context, "Bạn đã đánh giá cuốn sách này rồi", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+
+                val dialog = WriteReviewDialogFragment(args.bookId) { newReview ->
+                    loadReviews()
+                    bookDetailViewModel.loadBook(args.bookId)
+                }
+                dialog.show(parentFragmentManager, WriteReviewDialogFragment.TAG)
+            }
+        }
+    }
+
+    private fun loadReviews() {
+        bookRepository.getReviewsForBook(args.bookId, 3) { reviews, error ->
+            activity?.runOnUiThread {
+                if (error != null) {
+                    Log.e(TAG, "Error loading reviews: $error")
+                    return@runOnUiThread
+                }
+
+                reviews?.let { reviewList ->
+                    reviewAdapter.submitList(reviewList)
+
+                    // Show/hide reviews section based on availability
+                    if (reviewList.isEmpty()) {
+                        binding.layoutReviewsSection.visibility = View.GONE
+                        binding.layoutEmptyReviews.visibility = View.VISIBLE
+                    } else {
+                        binding.layoutReviewsSection.visibility = View.VISIBLE
+                        binding.layoutEmptyReviews.visibility = View.GONE
+                    }
+                }
+            }
+        }
     }
 
     private fun observeBookDetails() {
@@ -101,16 +181,14 @@ class BookDetailFragment : Fragment() {
             bookDetailViewModel.book.collectLatest { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        //binding.scrollView.visibility = View.GONE
                         Toast.makeText(context, "Error loading book: ${resource.exception}", Toast.LENGTH_LONG).show()
                         Log.d(TAG, "observeBookDetails: Error loading book: ${resource.exception}")
-                        findNavController().navigateUp() 
+                        findNavController().navigateUp()
                     }
                     is Resource.Loading -> {
-                        //binding.scrollView.visibility = View.GONE
+                        // You can show loading indicator here
                     }
                     is Resource.Success -> {
-                        //binding.scrollView.visibility = View.VISIBLE
                         resource.data?.let { book ->
                             bookDetailViewModel.categories.collectLatest { categories ->
                                 bindBookData(book, categories)
@@ -118,7 +196,7 @@ class BookDetailFragment : Fragment() {
                         } ?: run {
                             Toast.makeText(context, "Book not found.", Toast.LENGTH_LONG).show()
                             Log.d(TAG, "observeBookDetails: Book not found")
-                            findNavController().navigateUp() // Quay lại nếu không tìm thấy sách
+                            findNavController().navigateUp()
                         }
                     }
                 }
@@ -167,12 +245,6 @@ class BookDetailFragment : Fragment() {
             // Ratings & Reviews
             tvRating.text = String.format("%.1f/5", book.averageRating)
             tvReviewCount.text = "${book.totalRatings} lượt đánh giá"
-
-            // TODO: Load reviews vào rv_reviews
-            // reviewAdapter.submitList(book.reviews)
-
-            // TODO: Load related books vào rv_related_books
-            // relatedBooksAdapter.submitList(book.relatedBooks)
         }
     }
 
