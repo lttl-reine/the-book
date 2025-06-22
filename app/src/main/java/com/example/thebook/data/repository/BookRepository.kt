@@ -289,4 +289,174 @@ class BookRepository {
                 }
             })
     }
+
+    fun searchBooks(
+        query: String,
+        genre: String? = null,
+        limit: Int = 20
+    ): Flow<Resource<List<Book>>> = callbackFlow {
+        Log.d(TAG, "Starting search with query: '$query', genre: '$genre'")
+        trySend(Resource.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val books = mutableListOf<Book>()
+                val searchQuery = query.lowercase().trim()
+
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+
+                        // Check if book matches search criteria
+                        val matchesQuery = if (searchQuery.isEmpty()) {
+                            true
+                        } else {
+                            it.title.lowercase().contains(searchQuery) ||
+                                    it.author.lowercase().contains(searchQuery) ||
+                                    it.genre.any { genre -> genre.lowercase().contains(searchQuery) }
+                        }
+
+                        val matchesGenre = genre?.let { filterGenre ->
+                            it.genre.any { bookGenre ->
+                                bookGenre.lowercase() == filterGenre.lowercase()
+                            }
+                        } ?: true
+
+                        if (matchesQuery && matchesGenre) {
+                            books.add(it)
+                        }
+                    }
+                }
+
+                // Sort by relevance (exact matches first, then partial matches)
+                val sortedBooks = books.sortedWith(compareBy<Book> { book ->
+                    when {
+                        book.title.lowercase() == searchQuery -> 0
+                        book.author.lowercase() == searchQuery -> 1
+                        book.title.lowercase().startsWith(searchQuery) -> 2
+                        book.author.lowercase().startsWith(searchQuery) -> 3
+                        else -> 4
+                    }
+                }.thenByDescending { it.averageRating })
+
+                val limitedBooks = sortedBooks.take(limit)
+                Log.d(TAG, "Search completed: ${limitedBooks.size} books found")
+                trySend(Resource.Success(limitedBooks))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Search failed: ${error.message}", error.toException())
+                trySend(Resource.Error(error.toException()))
+            }
+        }
+
+        booksRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing search listener")
+        }
+    }
+
+    /**
+     * Get books by specific genre
+     */
+    fun getBooksByGenre(genre: String): Flow<Resource<List<Book>>> = callbackFlow {
+        Log.d(TAG, "Fetching books by genre: $genre")
+        trySend(Resource.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val books = mutableListOf<Book>()
+
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+                        if (it.genre.any { bookGenre ->
+                                bookGenre.lowercase() == genre.lowercase()
+                            }) {
+                            books.add(it)
+                        }
+                    }
+                }
+
+                // Sort by rating and upload date
+                val sortedBooks = books.sortedWith(
+                    compareByDescending<Book> { it.averageRating }
+                        .thenByDescending { it.uploadDate }
+                )
+
+                Log.d(TAG, "Found ${sortedBooks.size} books for genre: $genre")
+                trySend(Resource.Success(sortedBooks))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Failed to fetch books by genre: ${error.message}", error.toException())
+                trySend(Resource.Error(error.toException()))
+            }
+        }
+
+        booksRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing genre search listener")
+        }
+    }
+
+    /**
+     * Get search suggestions based on partial query
+     */
+    fun getSearchSuggestions(query: String, limit: Int = 5): Flow<Resource<List<String>>> = callbackFlow {
+        if (query.length < 2) {
+            trySend(Resource.Success(emptyList()))
+            close()
+            return@callbackFlow
+        }
+
+        trySend(Resource.Loading())
+        val searchQuery = query.lowercase().trim()
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val suggestions = mutableSetOf<String>()
+
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        // Add title suggestions
+                        if (it.title.lowercase().contains(searchQuery)) {
+                            suggestions.add(it.title)
+                        }
+
+                        // Add author suggestions
+                        if (it.author.lowercase().contains(searchQuery)) {
+                            suggestions.add(it.author)
+                        }
+
+                        // Add genre suggestions
+                        it.genre.forEach { genre ->
+                            if (genre.lowercase().contains(searchQuery)) {
+                                suggestions.add(genre)
+                            }
+                        }
+                    }
+                }
+
+                val limitedSuggestions = suggestions.take(limit)
+                trySend(Resource.Success(limitedSuggestions))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(Resource.Error(error.toException()))
+            }
+        }
+
+        booksRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing suggestions listener")
+        }
+    }
+
 }

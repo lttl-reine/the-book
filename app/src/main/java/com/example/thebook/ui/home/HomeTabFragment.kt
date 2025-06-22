@@ -44,6 +44,12 @@ class HomeTabFragment : Fragment() {
         binding.fabAddBook.setOnClickListener{
             findNavController().navigate(R.id.action_homeTabFragment_to_addBookFragment)
         }
+
+        // Handle search book
+        binding.btnSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_homeTabFragment_to_searchFragment)
+        }
+
         setupSystemUI()
         setupRecyclerView()
         observeBooks()

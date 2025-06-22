@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_homeTabFragment_to_addBookFragment"
             app:destination="@id/addBookFragment" />
+        <action
+            android:id="@+id/action_homeTabFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
 
     </fragment>
     <fragment
@@ -85,6 +88,15 @@
             app:argType="string"/>
         <action
             android:id="@+id/action_readerFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.thebook.ui.search.SearchFragment"
+        android:label="SearchFragment"
+        tools:layout="@layout/fragment_search">
+        <action
+            android:id="@+id/action_searchFragment_to_bookDetailFragment"
             app:destination="@id/bookDetailFragment" />
     </fragment>
 </navigation>

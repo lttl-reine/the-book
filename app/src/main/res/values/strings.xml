@@ -2,4 +2,16 @@
     <string name="app_name">TheBook</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="sort_options">
+        <item>Relevance</item>
+        <item>Title A-Z</item>
+        <item>Title Z-A</item>
+        <item>Author A-Z</item>
+        <item>Author Z-A</item>
+        <item>Rating High-Low</item>
+        <item>Rating Low-High</item>
+        <item>Newest First</item>
+        <item>Oldest First</item>
+    </string-array>
 </resources>
