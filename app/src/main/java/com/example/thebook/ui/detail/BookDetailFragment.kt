@@ -18,11 +18,10 @@ import com.bumptech.glide.Glide
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Category
-import com.example.thebook.data.model.Review
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentBookDetailBinding
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -39,7 +38,7 @@ class BookDetailFragment : Fragment() {
         BookDetailViewModelFactory(BookRepository(), SharedDataRepository(), this)
     }
 
-    private var bookUrl : String? = null
+    private var currentBook : Book? = null
     private lateinit var reviewAdapter: ReviewAdapter
     private val bookRepository = BookRepository()
     private val auth = FirebaseAuth.getInstance()
@@ -86,7 +85,7 @@ class BookDetailFragment : Fragment() {
         binding.btnStartReading.setOnClickListener {
             Toast.makeText(context, "Start Reading clicked", Toast.LENGTH_LONG).show()
             val action = BookDetailFragmentDirections.actionBookDetailFragmentToReaderFragment(
-                bookUrl!!
+                currentBook!!
             )
             findNavController().navigate(action)
         }
@@ -180,15 +179,15 @@ class BookDetailFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             bookDetailViewModel.book.collectLatest { resource ->
                 when (resource) {
-                    is Resource.Error -> {
+                    is Resources.Error -> {
                         Toast.makeText(context, "Error loading book: ${resource.exception}", Toast.LENGTH_LONG).show()
                         Log.d(TAG, "observeBookDetails: Error loading book: ${resource.exception}")
                         findNavController().navigateUp()
                     }
-                    is Resource.Loading -> {
+                    is Resources.Loading -> {
                         // You can show loading indicator here
                     }
-                    is Resource.Success -> {
+                    is Resources.Success -> {
                         resource.data?.let { book ->
                             bookDetailViewModel.categories.collectLatest { categories ->
                                 bindBookData(book, categories)
@@ -240,7 +239,7 @@ class BookDetailFragment : Fragment() {
                 }
             }
 
-            bookUrl = book.bookFileUrl
+            currentBook = book
 
             // Ratings & Reviews
             tvRating.text = String.format("%.1f/5", book.averageRating)

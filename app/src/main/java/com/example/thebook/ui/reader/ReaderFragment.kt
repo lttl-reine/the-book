@@ -26,11 +26,16 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentReaderBinding
+import com.example.thebook.data.repository.ReadingProgressRepository
+import com.example.thebook.data.model.ReadingProgress
 import com.example.thebook.utils.EpubCacheManager
+import com.example.thebook.utils.Resources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import nl.siegmann.epublib.domain.Resource
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import nl.siegmann.epublib.epub.EpubReader
 import java.io.*
 import java.net.HttpURLConnection
@@ -48,6 +53,12 @@ class ReaderFragment : Fragment() {
     private var currentBook: nl.siegmann.epublib.domain.Book? = null
     private var currentChapterIndex: Int = 0
     private var extractedEpubDir: File? = null
+
+    // Reading Progress
+    private lateinit var readingProgressRepository: ReadingProgressRepository
+    private var currentReadingProgress: ReadingProgress? = null
+    private var progressSaveJob: Job? = null
+    private var lastSavedPage: Int = -1
 
     // TOC Panel variables
     private var isTocPanelVisible = false
@@ -79,6 +90,9 @@ class ReaderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize reading progress repository
+        readingProgressRepository = ReadingProgressRepository()
+
         gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent): Boolean {
                 // Handle when tap the screen
@@ -102,6 +116,7 @@ class ReaderFragment : Fragment() {
         setupSettingsPanel()
         loadEpubBook()
         setupBottomControls()
+        observeReadingProgress()
     }
 
     private fun setupSystemUI() {
@@ -137,6 +152,8 @@ class ReaderFragment : Fragment() {
             title = ""
         }
         binding.toolbarReader.setNavigationOnClickListener {
+            // Save progress before leaving
+            saveCurrentProgress()
             findNavController().navigateUp()
         }
 
@@ -160,7 +177,6 @@ class ReaderFragment : Fragment() {
             allowContentAccess = true
         }
 
-        // DI CHUYỂN DÒNG NÀY ĐẾN ĐÂY
         webView.addJavascriptInterface(JavaScriptInterface(), "Android")
         Log.d(TAG, "JavaScriptInterface 'Android' added in setupWebView().")
 
@@ -182,8 +198,10 @@ class ReaderFragment : Fragment() {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "WebViewClient: onPageFinished for URL: $url")
                 injectCustomCSS()
-                // Chỉ gọi setupScrollTracking để inject JS, không thêm lại Interface
                 setupScrollTracking()
+
+                // Auto-save progress after page loads
+                scheduleProgressSave()
             }
         }
     }
@@ -191,7 +209,6 @@ class ReaderFragment : Fragment() {
     private fun setupScrollTracking() {
         val js = """
         javascript:(function() {
-            // Log giá trị để kiểm tra khi đối tượng Android được định nghĩa
             console.log("Checking if Android is defined at script start:", typeof Android !== 'undefined');
 
             function updateScrollPosition() {
@@ -201,29 +218,25 @@ class ReaderFragment : Fragment() {
 
                 console.log("Scroll: scrollTop=" + scrollTop + ", scrollHeight=" + scrollHeight + ", window.innerHeight=" + window.innerHeight + ", scrollPercent=" + scrollPercent);
 
-                // Communicate with Android for progress update
                 if (typeof Android !== 'undefined' && Android.onScrollChanged) {
                     Android.onScrollChanged(scrollPercent, scrollTop, scrollHeight);
                 } else {
                     console.error("Android.onScrollChanged is not available!");
                 }
 
-                // Logic cho chương quá ngắn (tự động chuyển chương tiếp theo)
                 if (scrollHeight <= 0 && typeof Android !== 'undefined' && Android.onReachedBottom) {
                     console.log("Chapter is too short to scroll. Automatically calling onReachedBottom().");
                     Android.onReachedBottom();
                 }
             }
 
-            // Scroll event listener
             window.addEventListener('scroll', function() {
-                updateScrollPosition(); // Cập nhật vị trí cuộn ngay lập tức
+                updateScrollPosition();
 
                 var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 var scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-                // Kiểm tra nếu đã cuộn đến cuối trang
-                if (scrollHeight > 0 && (scrollTop >= scrollHeight - 5)) { // Ngưỡng 5px từ cuối
+                if (scrollHeight > 0 && (scrollTop >= scrollHeight - 5)) {
                     console.log("Reached bottom by scrolling! Calling Android.onReachedBottom()");
                     if (typeof Android !== 'undefined' && Android.onReachedBottom) {
                         Android.onReachedBottom();
@@ -231,9 +244,7 @@ class ReaderFragment : Fragment() {
                         console.error("Android.onReachedBottom is not available!");
                     }
                 }
-                // --- BỔ SUNG LOGIC NÀY CHO CHUYỂN CHƯƠNG TRƯỚC ---
-                // Kiểm tra nếu đã cuộn đến đầu trang
-                else if (scrollTop <= 5) { // Ngưỡng 5px từ đầu
+                else if (scrollTop <= 5) {
                     console.log("Reached top by scrolling! Calling Android.onReachedTop()");
                     if (typeof Android !== 'undefined' && Android.onReachedTop) {
                         Android.onReachedTop();
@@ -241,13 +252,11 @@ class ReaderFragment : Fragment() {
                         console.error("Android.onReachedTop is not available!");
                     }
                 }
-                // --------------------------------------------------
             });
 
-            // Initial position and check for short chapters
             updateScrollPosition();
         })()
-    """.trimIndent()
+        """.trimIndent()
 
         webView.post {
             webView.evaluateJavascript(js, null)
@@ -265,6 +274,9 @@ class ReaderFragment : Fragment() {
                     currentScrollPosition = scrollTop
                     maxScrollPosition = scrollHeight
                 }
+
+                // Schedule progress save when user scrolls
+                scheduleProgressSave()
             }
         }
 
@@ -277,8 +289,8 @@ class ReaderFragment : Fragment() {
                         Log.d(TAG, "Navigating to next chapter: ${currentChapterIndex + 1}")
                         displayChapter(currentChapterIndex + 1)
                     } else {
-                        Log.d(TAG, "Already at last chapter.")
-                        // Có thể hiển thị Toast "Đã hết sách" hoặc tương tự
+                        Log.d(TAG, "Reached end of book. Marking as finished.")
+                        markBookAsFinished()
                     }
                 }
             }
@@ -287,16 +299,127 @@ class ReaderFragment : Fragment() {
         @android.webkit.JavascriptInterface
         fun onReachedTop() {
             activity?.runOnUiThread {
-                // Auto navigate to previous chapter if available
                 currentBook?.let {
                     if (currentChapterIndex > 0) {
                         displayChapter(currentChapterIndex - 1)
                     } else {
                         Log.d(TAG, "Already at first chapter.")
-                        // Tùy chọn: Hiển thị Toast "Đã là chương đầu tiên"
-                        // Toast.makeText(context, "Đã là chương đầu tiên", Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+        }
+    }
+
+    private fun observeReadingProgress() {
+        val bookId = args.book.bookId
+        lifecycleScope.launch {
+            readingProgressRepository.getReadingProgress(bookId).collectLatest { resource ->
+                when (resource) {
+                    is Resources.Success-> {
+                        currentReadingProgress = resource.data
+                        resource.data?.let { progress ->
+                            Log.d(TAG, "Reading progress loaded: page ${progress.lastReadPage}")
+                            if (currentBook != null && progress.lastReadPage > 0) {
+                                restoreReadingPosition(progress.lastReadPage)
+                            }
+                        }
+                    }
+                    is Resources.Error-> {
+                        Log.e(TAG, "Error loading reading progress: ${resource.exception?.message}")
+                    }
+                    is Resources.Loading -> {
+                        Log.d(TAG, "Loading reading progress...")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun restoreReadingPosition(lastReadPage: Int) {
+        // Convert page number back to chapter index
+        // This is a simplified approach - you might want to store chapter index separately
+        if (lastReadPage > 0 && lastReadPage != currentChapterIndex) {
+            currentChapterIndex = lastReadPage.coerceAtMost(
+                (currentBook?.spine?.spineReferences?.size ?: 1) - 1
+            )
+            displayChapter(currentChapterIndex)
+
+            // Show toast to inform user
+            Toast.makeText(
+                context,
+                "Đã khôi phục vị trí đọc: Chương ${currentChapterIndex + 1}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun scheduleProgressSave() {
+        // Cancel previous save job
+        progressSaveJob?.cancel()
+
+        // Schedule new save job with delay to avoid frequent saves
+        progressSaveJob = lifecycleScope.launch {
+            delay(2000) // Wait 2 seconds before saving
+            saveCurrentProgress()
+        }
+    }
+
+    private fun saveCurrentProgress() {
+        val bookId = args.book.bookId ?: return
+
+        // Only save if page has changed
+        if (lastSavedPage == currentChapterIndex) return
+
+        lifecycleScope.launch {
+            try {
+                val result = readingProgressRepository.saveReadingProgress(
+                    bookId = bookId,
+                    lastReadPage = currentChapterIndex,
+                    isFinished = false
+                )
+
+                when (result) {
+                    is com.example.thebook.utils.Resources.Success -> {
+                        lastSavedPage = currentChapterIndex
+                        Log.d(TAG, "Progress saved: chapter $currentChapterIndex")
+                    }
+                    is com.example.thebook.utils.Resources.Error -> {
+                        Log.e(TAG, "Error saving progress: ${result.exception?.message}")
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saving progress: ${e.message}")
+            }
+        }
+    }
+
+    private fun markBookAsFinished() {
+        val bookId = args.book.bookId ?: return
+
+        lifecycleScope.launch {
+            try {
+                val result = readingProgressRepository.markBookAsFinished(
+                    bookId = bookId,
+                    lastPage = currentChapterIndex
+                )
+
+                when (result) {
+                    is com.example.thebook.utils.Resources.Success -> {
+                        Toast.makeText(
+                            context,
+                            "Chúc mừng! Bạn đã hoàn thành cuốn sách này! 🎉",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        Log.d(TAG, "Book marked as finished")
+                    }
+                    is com.example.thebook.utils.Resources.Error -> {
+                        Log.e(TAG, "Error marking book as finished: ${result.exception?.message}")
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception marking book as finished: ${e.message}")
             }
         }
     }
@@ -539,7 +662,7 @@ class ReaderFragment : Fragment() {
     }
 
     private fun loadEpubBook() {
-        val epubFileUrl = args.epubFileUrl
+        val epubFileUrl = args.book.bookFileUrl
         Log.d(TAG, "loadEpubBook: bookUrl = $epubFileUrl")
 
         lifecycleScope.launch {
@@ -597,7 +720,7 @@ class ReaderFragment : Fragment() {
         currentBook?.let { book ->
             if (index >= 0 && index < book.spine.spineReferences.size) {
                 val spineReference = book.spine.spineReferences[index]
-                val chapterResource: Resource = spineReference.resource
+                val chapterResource: nl.siegmann.epublib.domain.Resource = spineReference.resource
 
                 currentChapterHref = chapterResource.href
 
@@ -802,7 +925,7 @@ class ReaderFragment : Fragment() {
         return enhancedTocList
     }
 
-    private fun extractTitleFromResource(resource: Resource): String? {
+    private fun extractTitleFromResource(resource: nl.siegmann.epublib.domain.Resource): String? {
         return try {
             val htmlContent = String(resource.data, Charsets.UTF_8)
 

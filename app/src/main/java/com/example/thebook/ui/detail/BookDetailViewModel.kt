@@ -7,7 +7,7 @@ import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Category
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,8 +20,8 @@ class BookDetailViewModel(
 ) : ViewModel() {
     private val TAG  = "BookDetailViewModel"
 
-    private val _book = MutableStateFlow<Resource<Book>>(Resource.Loading())
-    val book : StateFlow<Resource<Book>> = _book.asStateFlow()
+    private val _book = MutableStateFlow<Resources<Book>>(Resources.Loading())
+    val book : StateFlow<Resources<Book>> = _book.asStateFlow()
 
     val categories: StateFlow<List<Category>> = sharedDataRepository.categories
 
@@ -31,7 +31,7 @@ class BookDetailViewModel(
             fetchBookDetails(bookId)
         } else {
             Log.d(TAG, "Invalid bookId")
-            _book.value = Resource.Error(Exception("Invalid book ID"))
+            _book.value = Resources.Error(Exception("Invalid book ID"))
         }
     }
 

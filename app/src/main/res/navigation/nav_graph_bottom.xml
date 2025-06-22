@@ -84,8 +84,8 @@
         android:label="fragment_reader"
         tools:layout="@layout/fragment_reader" >
         <argument
-            android:name="epubFileUrl"
-            app:argType="string"/>
+            android:name="book"
+            app:argType="com.example.thebook.data.model.Book"/>
         <action
             android:id="@+id/action_readerFragment_to_bookDetailFragment"
             app:destination="@id/bookDetailFragment" />

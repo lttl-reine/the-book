@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thebook.data.model.User
 import com.example.thebook.data.repository.AuthRepository
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
@@ -15,8 +15,8 @@ class AuthViewModel : ViewModel() {
     private val authRepository = AuthRepository()
 
     // Auth State
-    private val _authState = MutableLiveData<Resource<User>>()
-    val authState : LiveData<Resource<User>> = _authState
+    private val _authState = MutableLiveData<Resources<User>>()
+    val authState : LiveData<Resources<User>> = _authState
 
     // Current User
     private val _currentUser = MutableLiveData<User?>()
@@ -25,7 +25,7 @@ class AuthViewModel : ViewModel() {
     fun login(email: String, password: String) {
         Log.d(TAG, "Initiating login for email: $email")
         viewModelScope.launch {
-            _authState.value = Resource.Loading()
+            _authState.value = Resources.Loading()
             _authState.value = authRepository.login(email, password)
         }
     }
@@ -33,7 +33,7 @@ class AuthViewModel : ViewModel() {
     fun register(email: String, password: String, confirmPassword : String, name : String) {
         if (password != confirmPassword) {
             Log.e(TAG, "Registration failed: Passwords do not match")
-            _authState.value = Resource.Error(Exception("Passwords do not match"))
+            _authState.value = Resources.Error(Exception("Passwords do not match"))
             return
         }
         Log.d(TAG, "Initiating registration for email: $email, name: $name")

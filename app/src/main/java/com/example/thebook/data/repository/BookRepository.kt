@@ -3,7 +3,7 @@ package com.example.thebook.data.repository
 import android.util.Log
 import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Review
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -20,8 +20,8 @@ class BookRepository {
     private val booksRef: DatabaseReference = database.getReference("Books")
     private val reviewsRef: DatabaseReference = database.getReference("Reviews") // Using Realtime Database for reviews
 
-    fun getBooks() : Flow<Resource<List<Book>>> = callbackFlow {
-        trySend(Resource.Loading())
+    fun getBooks() : Flow<Resources<List<Book>>> = callbackFlow {
+        trySend(Resources.Loading())
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -35,12 +35,12 @@ class BookRepository {
                     }
                 }
                 Log.d(TAG, "Fetched ${books.size} books successfully")
-                trySend(Resource.Success(books))
+                trySend(Resources.Success(books))
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e(TAG, "Failed to fetch books: ${error.message}", error.toException())
-                trySend(Resource.Error(error.toException()))
+                trySend(Resources.Error(error.toException()))
             }
         }
 
@@ -54,9 +54,9 @@ class BookRepository {
         }
     }
 
-    fun getBookById(bookId: String) : Flow<Resource<Book>> = callbackFlow {
+    fun getBookById(bookId: String) : Flow<Resources<Book>> = callbackFlow {
         Log.d(TAG, "Starting to fetch book with ID: $bookId")
-        trySend(Resource.Loading())
+        trySend(Resources.Loading())
 
         val bookRef = database.getReference("Books").child(bookId)
         val valueEventListener = object : ValueEventListener {
@@ -65,16 +65,16 @@ class BookRepository {
                 if (book != null) {
                     book.bookId = snapshot.key ?: ""
                     Log.d(TAG, "Book fetched successfully: ${book.title}, ID: ${book.bookId}")
-                    trySend(Resource.Success(book))
+                    trySend(Resources.Success(book))
                 } else {
                     Log.e(TAG, "Book not found for ID: $bookId")
-                    trySend(Resource.Error(Exception("Book not found for ID: $bookId")))
+                    trySend(Resources.Error(Exception("Book not found for ID: $bookId")))
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e(TAG, "Failed to fetch book with ID $bookId: ${error.message}", error.toException())
-                trySend(Resource.Error(error.toException()))
+                trySend(Resources.Error(error.toException()))
             }
         }
         // Just listen one time
@@ -85,9 +85,9 @@ class BookRepository {
         }
     }
 
-    fun saveBook(book: Book, uploaderId: String): Flow<Resource<Unit>> = callbackFlow {
+    fun saveBook(book: Book, uploaderId: String): Flow<Resources<Unit>> = callbackFlow {
         Log.d(TAG, "Starting to save book: ${book.title}, uploaderId: $uploaderId")
-        trySend(Resource.Loading())
+        trySend(Resources.Loading())
         val newBookRef = booksRef.push()
         val generatedBookId = newBookRef.key ?: UUID.randomUUID().toString()
         val uploadDate = System.currentTimeMillis()
@@ -101,12 +101,12 @@ class BookRepository {
         newBookRef.setValue(bookToSave)
             .addOnSuccessListener {
                 Log.d(TAG, "Book saved successfully: ${bookToSave.title}, ID: $generatedBookId")
-                trySend(Resource.Success(Unit))
+                trySend(Resources.Success(Unit))
                 close()
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Failed to save book: ${e.message}", e)
-                trySend(Resource.Error(Exception(e.message ?: "Failed to add book")))
+                trySend(Resources.Error(Exception(e.message ?: "Failed to add book")))
                 close()
             }
         awaitClose {
@@ -294,9 +294,9 @@ class BookRepository {
         query: String,
         genre: String? = null,
         limit: Int = 20
-    ): Flow<Resource<List<Book>>> = callbackFlow {
+    ): Flow<Resources<List<Book>>> = callbackFlow {
         Log.d(TAG, "Starting search with query: '$query', genre: '$genre'")
-        trySend(Resource.Loading())
+        trySend(Resources.Loading())
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -342,12 +342,12 @@ class BookRepository {
 
                 val limitedBooks = sortedBooks.take(limit)
                 Log.d(TAG, "Search completed: ${limitedBooks.size} books found")
-                trySend(Resource.Success(limitedBooks))
+                trySend(Resources.Success(limitedBooks))
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e(TAG, "Search failed: ${error.message}", error.toException())
-                trySend(Resource.Error(error.toException()))
+                trySend(Resources.Error(error.toException()))
             }
         }
 
@@ -361,9 +361,9 @@ class BookRepository {
     /**
      * Get books by specific genre
      */
-    fun getBooksByGenre(genre: String): Flow<Resource<List<Book>>> = callbackFlow {
+    fun getBooksByGenre(genre: String): Flow<Resources<List<Book>>> = callbackFlow {
         Log.d(TAG, "Fetching books by genre: $genre")
-        trySend(Resource.Loading())
+        trySend(Resources.Loading())
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -388,12 +388,12 @@ class BookRepository {
                 )
 
                 Log.d(TAG, "Found ${sortedBooks.size} books for genre: $genre")
-                trySend(Resource.Success(sortedBooks))
+                trySend(Resources.Success(sortedBooks))
             }
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e(TAG, "Failed to fetch books by genre: ${error.message}", error.toException())
-                trySend(Resource.Error(error.toException()))
+                trySend(Resources.Error(error.toException()))
             }
         }
 
@@ -407,14 +407,14 @@ class BookRepository {
     /**
      * Get search suggestions based on partial query
      */
-    fun getSearchSuggestions(query: String, limit: Int = 5): Flow<Resource<List<String>>> = callbackFlow {
+    fun getSearchSuggestions(query: String, limit: Int = 5): Flow<Resources<List<String>>> = callbackFlow {
         if (query.length < 2) {
-            trySend(Resource.Success(emptyList()))
+            trySend(Resources.Success(emptyList()))
             close()
             return@callbackFlow
         }
 
-        trySend(Resource.Loading())
+        trySend(Resources.Loading())
         val searchQuery = query.lowercase().trim()
 
         val valueEventListener = object : ValueEventListener {
@@ -444,11 +444,11 @@ class BookRepository {
                 }
 
                 val limitedSuggestions = suggestions.take(limit)
-                trySend(Resource.Success(limitedSuggestions))
+                trySend(Resources.Success(limitedSuggestions))
             }
 
             override fun onCancelled(error: DatabaseError) {
-                trySend(Resource.Error(error.toException()))
+                trySend(Resources.Error(error.toException()))
             }
         }
 

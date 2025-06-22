@@ -7,7 +7,7 @@ import com.example.thebook.data.model.Book
 import com.example.thebook.data.repository.AuthRepository
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -38,15 +38,15 @@ class AddBookViewModel(
             }
             bookRepository.saveBook(book, uploaderId).collectLatest { resource ->
                 when (resource) {
-                    is Resource.Error -> {
+                    is Resources.Error -> {
                         Log.e(TAG, "saveBook: Can't save book")
                         _saveBookStatus.value = SaveBookStatus.Error((resource.exception ?: "Unknown error").toString())
                     }
-                    is Resource.Loading -> {
+                    is Resources.Loading -> {
                         Log.d(TAG, "saveBook: In progress saving book")
                         _saveBookStatus.value = SaveBookStatus.Loading
                     }
-                    is Resource.Success -> {
+                    is Resources.Success -> {
                         Log.d(TAG, "saveBook: Book saved success")
                         _saveBookStatus.value = SaveBookStatus.Success("Book saved success")
                     }

@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentRegisterBinding
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 
 class RegisterFragment : Fragment() {
     private val TAG = "RegisterFragment"
@@ -54,19 +54,19 @@ class RegisterFragment : Fragment() {
         // Handle state of create new account
         viewModel.authState.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Loading -> {
+                is Resources.Loading -> {
                     Log.d(TAG, "Registration in progress")
                     binding.progressBar.visibility = View.VISIBLE
                     binding.btnRegister.isEnabled = false
                 }
-                is Resource.Success -> {
+                is Resources.Success -> {
                     Log.d(TAG, "Registration successful: ${resource.data.email}")
                     binding.progressBar.visibility = View.GONE
                     binding.btnRegister.isEnabled = true
                     Toast.makeText(context, "Đăng ký thành công: ${resource.data.email}", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                 }
-                is Resource.Error -> {
+                is Resources.Error -> {
                     Log.e(TAG, "Registration failed: ${resource.exception.message}")
                     binding.progressBar.visibility = View.GONE
                     binding.btnRegister.isEnabled = true

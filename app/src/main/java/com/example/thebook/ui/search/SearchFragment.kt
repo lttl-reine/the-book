@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.thebook.databinding.FragmentSearchBinding
 import com.example.thebook.ui.home.BookAdapter
-import com.example.thebook.utils.Resource
+import com.example.thebook.utils.Resources
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.launch
 
@@ -152,15 +152,15 @@ class SearchFragment : Fragment() {
         lifecycleScope.launch {
             searchViewModel.searchResults.collect { resource ->
                 when (resource) {
-                    is Resource.Loading -> {
+                    is Resources.Loading -> {
                         binding.progressBar.visibility = View.VISIBLE
                     }
-                    is Resource.Success -> {
+                    is Resources.Success -> {
                         binding.progressBar.visibility = View.GONE
                         booksAdapter.submitList(resource.data)
                         binding.textViewResultCount.text = "${resource.data.size} results"
                     }
-                    is Resource.Error -> {
+                    is Resources.Error -> {
                         binding.progressBar.visibility = View.GONE
                         Toast.makeText(
                             requireContext(),
@@ -176,13 +176,13 @@ class SearchFragment : Fragment() {
         lifecycleScope.launch {
             searchViewModel.suggestions.collect { resource ->
                 when (resource) {
-                    is Resource.Success -> {
+                    is Resources.Success -> {
                         suggestionsAdapter.submitList(resource.data)
                     }
-                    is Resource.Error -> {
+                    is Resources.Error -> {
                         // Handle error silently for suggestions
                     }
-                    is Resource.Loading -> {
+                    is Resources.Loading -> {
                         // Handle loading state if needed
                     }
                 }
