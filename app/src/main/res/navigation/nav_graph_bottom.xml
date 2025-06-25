@@ -73,7 +73,7 @@
     </fragment>
     <fragment
         android:id="@+id/addBookFragment"
-        android:name="com.example.thebook.ui.home.AddBookFragment"
+        android:name="com.example.thebook.ui.add.AddBookFragment"
         android:label="AddBookFragment"
         tools:layout="@layout/fragment_add_book">
         <action

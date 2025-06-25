@@ -1,4 +1,4 @@
-package com.example.thebook.ui.home
+package com.example.thebook.ui.add
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -40,7 +40,8 @@ class AddBookViewModel(
                 when (resource) {
                     is Resources.Error -> {
                         Log.e(TAG, "saveBook: Can't save book")
-                        _saveBookStatus.value = SaveBookStatus.Error((resource.exception ?: "Unknown error").toString())
+                        _saveBookStatus.value =
+                            SaveBookStatus.Error((resource.exception ?: "Unknown error").toString())
                     }
                     is Resources.Loading -> {
                         Log.d(TAG, "saveBook: In progress saving book")

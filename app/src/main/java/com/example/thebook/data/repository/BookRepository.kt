@@ -114,6 +114,26 @@ class BookRepository {
         }
     }
 
+    fun updateBookPageCount(bookId: String, pageCount: Int): Flow<com.example.thebook.utils.Resources<Unit>> = callbackFlow {
+        Log.d(TAG, "Updating pageCount for book ID: $bookId to $pageCount")
+        trySend(com.example.thebook.utils.Resources.Loading())
+
+        val bookRef = booksRef.child(bookId)
+        bookRef.child("pageCount").setValue(pageCount)
+            .addOnSuccessListener {
+                Log.d(TAG, "pageCount updated successfully for book ID: $bookId")
+                trySend(com.example.thebook.utils.Resources.Success(Unit))
+                close()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to update pageCount for book ID: $bookId: ${e.message}", e)
+                trySend(com.example.thebook.utils.Resources.Error(Exception(e.message ?: "Failed to update pageCount")))
+                close()
+            }
+        awaitClose {
+            Log.d(TAG, "Closing update pageCount operation for book ID: $bookId")
+        }
+    }
     /**
      * Add a new review for a book
      */

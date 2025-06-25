@@ -1,4 +1,4 @@
-package com.example.thebook.ui.home
+package com.example.thebook.ui.add
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -39,7 +39,8 @@ class AddBookFragment : Fragment() {
         val sharedDataRepository = SharedDataRepository()
         val bookRepository = BookRepository()
         val authRepository = AuthRepository()
-        AddBookViewModelFactory(sharedDataRepository, bookRepository, authRepository).create(AddBookViewModel::class.java)
+        AddBookViewModelFactory(sharedDataRepository, bookRepository, authRepository).create(
+            AddBookViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -187,6 +188,9 @@ class AddBookFragment : Fragment() {
             Toast.makeText(requireContext(), "Title and Author cannot be empty.", Toast.LENGTH_SHORT).show()
             return
         }
+
+        binding.progressBar.visibility = View.VISIBLE
+        binding.btnSaveBook.isEnabled = false
 
         val newBook = Book(
             title = title,

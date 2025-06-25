@@ -3,7 +3,12 @@ package com.example.thebook.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 object EpubCacheManager {
     private const val TAG = "EpubCacheManager"
@@ -133,6 +138,46 @@ object EpubCacheManager {
             Log.e(TAG, "Error calculating directory size: ${e.message}")
         }
         return size
+    }
+
+    suspend fun downloadEpubFile(url: String, context: Context): File? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Accept", "application/epub+zip, application/octet-stream, */*")
+                connection.connect()
+
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val inputStream = connection.inputStream
+                    val tempEpubFile = EpubCacheManager.getTempEpubFile(context)
+                    EpubCacheManager.clearTempEpubFile(context)
+
+                    val outputStream = FileOutputStream(tempEpubFile)
+
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    var totalBytes = 0L
+                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                        totalBytes += bytesRead
+                    }
+
+                    inputStream.close()
+                    outputStream.close()
+                    connection.disconnect()
+
+                    Log.d(TAG, "Downloaded EPUB to temp file: ${tempEpubFile.absolutePath}, size: ${totalBytes} bytes")
+                    return@withContext tempEpubFile
+                } else {
+                    Log.e(TAG, "Server returned: ${connection.responseCode} ${connection.responseMessage}")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error downloading file: ${e.message}", e)
+                null
+            }
+        }
     }
 
     // Information about cache

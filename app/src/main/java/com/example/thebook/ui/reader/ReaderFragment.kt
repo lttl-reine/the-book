@@ -28,6 +28,7 @@ import com.example.thebook.R
 import com.example.thebook.databinding.FragmentReaderBinding
 import com.example.thebook.data.repository.ReadingProgressRepository
 import com.example.thebook.data.model.ReadingProgress
+import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.utils.EpubCacheManager
 import com.example.thebook.utils.Resources
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,9 @@ class ReaderFragment : Fragment() {
     private var currentBook: nl.siegmann.epublib.domain.Book? = null
     private var currentChapterIndex: Int = 0
     private var extractedEpubDir: File? = null
+
+    // Book Repository for update total page
+    private lateinit var bookRepository: BookRepository
 
     // Reading Progress
     private lateinit var readingProgressRepository: ReadingProgressRepository
@@ -90,8 +94,9 @@ class ReaderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize reading progress repository
+        // Initialize repository
         readingProgressRepository = ReadingProgressRepository()
+        bookRepository = BookRepository()
 
         gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent): Boolean {
@@ -667,7 +672,7 @@ class ReaderFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                val downloadedFile = downloadEpubFile(epubFileUrl, requireContext())
+                val downloadedFile = EpubCacheManager.downloadEpubFile(epubFileUrl, requireContext())
                 if (downloadedFile != null) {
                     extractedEpubDir = extractEpubFile(downloadedFile, requireContext())
 
@@ -676,6 +681,27 @@ class ReaderFragment : Fragment() {
                     }
 
                     Log.d(TAG, "Book loaded: ${currentBook?.title}")
+
+                    // Check if book already total page
+                    currentBook?.let { book ->
+                        val calculatedPageCount = book.spine?.spineReferences?.size ?: 0
+                        Log.d(TAG, "Calculated pageCount: $calculatedPageCount")
+
+                        if (args.book.pageCount == 0 && calculatedPageCount > 0) {
+                            Log.d(TAG, "pageCount is 0. Updating book with calculated pageCount: $calculatedPageCount")
+                            bookRepository.updateBookPageCount(args.book.bookId, calculatedPageCount).collectLatest { status ->
+                                when (status) {
+                                    is Resources.Success -> {
+                                        Log.d(TAG, "Book pageCount updated successfully in DB.")
+                                    }
+                                    is Resources.Error -> {
+                                        Log.e(TAG, "Failed to update book pageCount in DB: ${status.exception?.message}")
+                                    }
+                                    else -> { /* Loading */ }
+                                }
+                            }
+                        }
+                    }
 
                     withContext(Dispatchers.Main) {
                         // Skip cover page if it exists
@@ -952,45 +978,45 @@ class ReaderFragment : Fragment() {
         }
     }
 
-    private suspend fun downloadEpubFile(url: String, context: Context): File? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val connection = URL(url).openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Accept", "application/epub+zip, application/octet-stream, */*")
-                connection.connect()
-
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val inputStream = connection.inputStream
-                    val tempEpubFile = EpubCacheManager.getTempEpubFile(context)
-                    EpubCacheManager.clearTempEpubFile(context)
-
-                    val outputStream = FileOutputStream(tempEpubFile)
-
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    var totalBytes = 0L
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        totalBytes += bytesRead
-                    }
-
-                    inputStream.close()
-                    outputStream.close()
-                    connection.disconnect()
-
-                    Log.d(TAG, "Downloaded EPUB to temp file: ${tempEpubFile.absolutePath}, size: ${totalBytes} bytes")
-                    return@withContext tempEpubFile
-                } else {
-                    Log.e(TAG, "Server returned: ${connection.responseCode} ${connection.responseMessage}")
-                    null
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error downloading file: ${e.message}", e)
-                null
-            }
-        }
-    }
+//    suspend fun downloadEpubFile(url: String, context: Context): File? {
+//        return withContext(Dispatchers.IO) {
+//            try {
+//                val connection = URL(url).openConnection() as HttpURLConnection
+//                connection.requestMethod = "GET"
+//                connection.setRequestProperty("Accept", "application/epub+zip, application/octet-stream, */*")
+//                connection.connect()
+//
+//                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+//                    val inputStream = connection.inputStream
+//                    val tempEpubFile = EpubCacheManager.getTempEpubFile(context)
+//                    EpubCacheManager.clearTempEpubFile(context)
+//
+//                    val outputStream = FileOutputStream(tempEpubFile)
+//
+//                    val buffer = ByteArray(8192)
+//                    var bytesRead: Int
+//                    var totalBytes = 0L
+//                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+//                        outputStream.write(buffer, 0, bytesRead)
+//                        totalBytes += bytesRead
+//                    }
+//
+//                    inputStream.close()
+//                    outputStream.close()
+//                    connection.disconnect()
+//
+//                    Log.d(TAG, "Downloaded EPUB to temp file: ${tempEpubFile.absolutePath}, size: ${totalBytes} bytes")
+//                    return@withContext tempEpubFile
+//                } else {
+//                    Log.e(TAG, "Server returned: ${connection.responseCode} ${connection.responseMessage}")
+//                    null
+//                }
+//            } catch (e: Exception) {
+//                Log.e(TAG, "Error downloading file: ${e.message}", e)
+//                null
+//            }
+//        }
+//    }
 
     private suspend fun extractEpubFile(epubFile: File, context: Context): File? {
         return withContext(Dispatchers.IO) {
