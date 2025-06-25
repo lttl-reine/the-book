@@ -19,16 +19,19 @@ import com.example.thebook.R
 import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Category
 import com.example.thebook.data.repository.BookRepository
+import com.example.thebook.data.repository.LibraryRepository
+import com.example.thebook.data.repository.ReadingProgressRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentBookDetailBinding
+import com.example.thebook.ui.library.LibraryViewModel
+import com.example.thebook.ui.library.LibraryViewModelFactory
 import com.example.thebook.utils.Resources
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-
 class BookDetailFragment : Fragment() {
-    private val TAG  = "BookDetailFragment"
+    private val TAG = "BookDetailFragment"
 
     private var _binding : FragmentBookDetailBinding? = null
     private val binding get() = _binding!!
@@ -38,10 +41,15 @@ class BookDetailFragment : Fragment() {
         BookDetailViewModelFactory(BookRepository(), SharedDataRepository(), this)
     }
 
+    private val libraryViewModel: LibraryViewModel by viewModels {
+        LibraryViewModelFactory(LibraryRepository(), ReadingProgressRepository())
+    }
+
     private var currentBook : Book? = null
     private lateinit var reviewAdapter: ReviewAdapter
     private val bookRepository = BookRepository()
     private val auth = FirebaseAuth.getInstance()
+    private var isBookInLibrary = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,7 +66,9 @@ class BookDetailFragment : Fragment() {
         setupUI()
         setupRecyclerView()
         observeBookDetails()
+        observeLibraryActions()
         loadReviews()
+        checkBookInLibrary()
         bookDetailViewModel.loadBook(args.bookId)
     }
 
@@ -92,7 +102,7 @@ class BookDetailFragment : Fragment() {
 
         // Handle add to library button
         binding.btnAddLibrary.setOnClickListener {
-            Toast.makeText(context, "Add to library clicked", Toast.LENGTH_LONG).show()
+            handleLibraryAction()
         }
 
         // Handle write first review button
@@ -111,6 +121,105 @@ class BookDetailFragment : Fragment() {
         }
 
         binding.imgBookCover.setBackgroundResource(R.drawable.book_cover_placeholder)
+    }
+
+    private fun handleLibraryAction() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(context, "Vui lòng đăng nhập để thêm sách vào thư viện", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (isBookInLibrary) {
+            // Remove from library
+            libraryViewModel.removeBookFromLibrary(currentUser.uid, args.bookId)
+        } else {
+            // Add to library
+            libraryViewModel.addBookToLibrary(currentUser.uid, args.bookId)
+        }
+    }
+
+    private fun checkBookInLibrary() {
+        val currentUser = auth.currentUser ?: return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            isBookInLibrary = libraryViewModel.isBookInLibrary(currentUser.uid, args.bookId)
+            updateLibraryButton()
+        }
+    }
+
+    private fun updateLibraryButton() {
+        if (isBookInLibrary) {
+            binding.btnAddLibrary.text = "Xóa khỏi thư viện"
+            binding.btnAddLibrary.setCompoundDrawablesWithIntrinsicBounds(
+                R.drawable.ic_close_24, 0, 0, 0
+            )
+        } else {
+            binding.btnAddLibrary.text = "Thêm vào thư viện"
+            binding.btnAddLibrary.setCompoundDrawablesWithIntrinsicBounds(
+                R.drawable.ic_auth_add_user_24, 0, 0, 0
+            )
+        }
+    }
+
+    private fun observeLibraryActions() {
+        // Observe add to library result
+        viewLifecycleOwner.lifecycleScope.launch {
+            libraryViewModel.addToLibraryResult.collectLatest { resource ->
+                resource?.let {
+                    when (it) {
+                        is Resources.Loading -> {
+                            binding.btnAddLibrary.isEnabled = false
+                        }
+                        is Resources.Success -> {
+                            binding.btnAddLibrary.isEnabled = true
+                            isBookInLibrary = true
+                            updateLibraryButton()
+                            Toast.makeText(context, "Đã thêm sách vào thư viện", Toast.LENGTH_SHORT).show()
+                            libraryViewModel.clearAddToLibraryResult()
+                        }
+                        is Resources.Error -> {
+                            binding.btnAddLibrary.isEnabled = true
+                            Toast.makeText(
+                                context,
+                                "Lỗi: ${it.exception?.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            libraryViewModel.clearAddToLibraryResult()
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observe remove from library result
+        viewLifecycleOwner.lifecycleScope.launch {
+            libraryViewModel.removeFromLibraryResult.collectLatest { resource ->
+                resource?.let {
+                    when (it) {
+                        is Resources.Loading -> {
+                            binding.btnAddLibrary.isEnabled = false
+                        }
+                        is Resources.Success -> {
+                            binding.btnAddLibrary.isEnabled = true
+                            isBookInLibrary = false
+                            updateLibraryButton()
+                            Toast.makeText(context, "Đã xóa sách khỏi thư viện", Toast.LENGTH_SHORT).show()
+                            libraryViewModel.clearRemoveFromLibraryResult()
+                        }
+                        is Resources.Error -> {
+                            binding.btnAddLibrary.isEnabled = true
+                            Toast.makeText(
+                                context,
+                                "Lỗi: ${it.exception?.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            libraryViewModel.clearRemoveFromLibraryResult()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView() {
