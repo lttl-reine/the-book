@@ -174,7 +174,7 @@ class LibraryTabFragment : Fragment() {
                         if (resource.data.isNullOrEmpty()) {
                             showEmptyState("Thư viện của bạn đang trống")
                         } else {
-                            showLibraryData(resource.data)
+                            showLibraryData(resource.data) // Truyền List<LibraryItem>
                         }
                     }
                     is Resources.Error -> {
@@ -196,7 +196,7 @@ class LibraryTabFragment : Fragment() {
             layoutEmptyState.visibility = View.GONE
             progressBar.visibility = View.GONE
         }
-        libraryAdapter.submitList(libraryItems)
+        libraryAdapter.submitList(libraryItems) // Sử dụng LibraryItem trực tiếp
     }
 
     private fun showEmptyState(message: String) {

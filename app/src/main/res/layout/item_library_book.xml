@@ -97,20 +97,20 @@
 
             <!-- Reading Progress -->
             <LinearLayout
+                android:id="@+id/layout_progress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
                 android:layout_marginTop="8dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
+                android:gravity="center_vertical"
+                android:visibility="visible" >
                 <ProgressBar
                     android:id="@+id/progress_reading"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="0dp"
-                    android:layout_height="8dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:max="100"
                     android:progress="45"
                     android:progressTint="@color/primary_700"
                     android:progressBackgroundTint="@color/grey_200" />

@@ -1,5 +1,6 @@
 package com.example.thebook.ui.library
 
+import android.util.Log // Import Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +23,8 @@ class LibraryAdapter(
     private val onFavoriteClick: (Library, Book) -> Unit
 ) : ListAdapter<LibraryItem, LibraryAdapter.LibraryViewHolder>(LibraryDiffCallback()) {
 
+    private val TAG = "LibraryAdapter" // Thêm TAG cho log
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LibraryViewHolder {
         val binding = ItemLibraryBookBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -38,60 +41,48 @@ class LibraryAdapter(
     inner class LibraryViewHolder(
         private val binding: ItemLibraryBookBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-
         fun bind(item: LibraryItem) {
             val library = item.library
             val book = item.book
             val progress = item.progress
 
             binding.apply {
-                // Book cover
+                tvBookTitle.text = book.title
+                tvBookAuthor.text = book.author
+
                 Glide.with(imgBookCover.context)
                     .load(book.coverImageUrl)
                     .placeholder(R.drawable.book_cover_placeholder)
                     .error(R.drawable.book_cover_placeholder)
                     .into(imgBookCover)
 
-                // Book info
-                tvBookTitle.text = book.title
-                tvBookAuthor.text = book.author
+                // Log thông tin sách và thư viện
+                Log.d(TAG, "Binding book: ${book.title}, Status: ${library.readingStatus}, Page Count: ${book.pageCount}")
 
-                // Reading status
-                val status = ReadingStatus.valueOf(library.readingStatus)
-                tvStatus.text = status.displayName
+                // Hiển thị tiến độ đọc
+                if (progress != null && ReadingStatus.valueOf(library.readingStatus) == ReadingStatus.READING) {
+                    Log.d(TAG, "Processing progress for book: ${book.title}. Last read page: ${progress.lastReadPage}, Is finished: ${progress.isFinished}")
 
-                // Set status color
-                when (status) {
-                    ReadingStatus.NOT_STARTED -> {
-                        tvStatus.setTextColor(itemView.context.getColor(android.R.color.darker_gray))
-                    }
-                    ReadingStatus.READING -> {
-                        tvStatus.setTextColor(itemView.context.getColor(android.R.color.holo_orange_dark))
-                    }
-                    ReadingStatus.FINISHED -> {
-                        tvStatus.setTextColor(itemView.context.getColor(android.R.color.holo_green_dark))
-                    }
-                }
+                    // Kiểm tra book.pageCount để tránh chia cho 0
+                    if (book.pageCount > 0) {
+                        val progressPercentage = (progress.lastReadPage * 100) / book.pageCount
+                        Log.d(TAG, "Calculated progress for ${book.title}: ${progress.lastReadPage}/${book.pageCount} -> $progressPercentage%")
 
-                // Reading progress
-                if (progress != null && status == ReadingStatus.READING) {
-                    progressReading.visibility = View.VISIBLE
-                    tvProgress.visibility = View.VISIBLE
-
-                    val progressPercentage = if (book.pageCount > 0) {
-                        (progress.lastReadPage * 100) / book.pageCount
+                        progressReading.progress = progressPercentage
+                        tvProgress.text = "$progressPercentage%"
+                        layoutProgress.visibility = View.VISIBLE
                     } else {
-                        0
+                        Log.w(TAG, "Book ${book.title} has pageCount 0. Hiding progress.")
+                        progressReading.visibility = View.GONE
+                        tvProgress.visibility = View.GONE
                     }
-
-                    progressReading.progress = progressPercentage
-                    tvProgress.text = "$progressPercentage%"
                 } else {
+                    Log.d(TAG, "Hiding progress for book: ${book.title}. Progress is null: ${progress == null}, Status is READING: ${ReadingStatus.valueOf(library.readingStatus) == ReadingStatus.READING}")
                     progressReading.visibility = View.GONE
                     tvProgress.visibility = View.GONE
                 }
 
-                // Favorite icon
+                // Hiển thị trạng thái yêu thích
                 if (library.isFavorite) {
                     imgFavorite.visibility = View.VISIBLE
                     imgFavorite.setImageResource(R.drawable.ic_star_24)

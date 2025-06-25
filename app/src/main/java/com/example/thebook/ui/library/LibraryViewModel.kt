@@ -1,5 +1,6 @@
 package com.example.thebook.ui.library
 
+import android.util.Log // Import Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,6 +20,8 @@ class LibraryViewModel(
     private val readingProgressRepository: ReadingProgressRepository
 ) : ViewModel() {
 
+    private val TAG = "LibraryViewModel" // Thêm TAG cho log
+
     private val _libraryBooks = MutableStateFlow<Resources<List<LibraryItem>>>(Resources.Loading())
     val libraryBooks: StateFlow<Resources<List<LibraryItem>>> = _libraryBooks
 
@@ -30,6 +33,7 @@ class LibraryViewModel(
 
     fun loadUserLibrary(userId: String) {
         viewModelScope.launch {
+            Log.d(TAG, "loadUserLibrary called for userId: $userId") // Log khi hàm được gọi
             _libraryBooks.value = Resources.Loading()
 
             val result = libraryRepository.getUserLibrary(userId)
@@ -38,18 +42,25 @@ class LibraryViewModel(
                 val libraryData = result.getOrNull() ?: emptyList()
                 val libraryItems = libraryData.map { (library, book) ->
                     // Get reading progress for each book
+                    Log.d(TAG, "Fetching reading progress for bookId: ${book.bookId}, userId: $userId") // Log trước khi gọi getReadingProgress
                     val progress = libraryRepository.getReadingProgress(userId, book.bookId)
-                    LibraryItem(library, book, progress)
+                    Log.d(TAG, "Reading progress for ${book.title} (ID: ${book.bookId}): $progress") // Log kết quả lấy progress
+                    val item = LibraryItem(library, book, progress)
+                    Log.d(TAG, "Created LibraryItem: $item") // Log LibraryItem được tạo
+                    item
                 }
                 _libraryBooks.value = Resources.Success(libraryItems)
+                Log.d(TAG, "loadUserLibrary: Successfully loaded ${libraryItems.size} books with progress.") // Log khi thành công
             } else {
                 _libraryBooks.value = Resources.Error(result.exceptionOrNull() as Exception)
+                Log.e(TAG, "loadUserLibrary: Error loading library: ${result.exceptionOrNull()?.message}", result.exceptionOrNull()) // Log khi lỗi
             }
         }
     }
 
     fun loadLibraryByStatus(userId: String, status: ReadingStatus) {
         viewModelScope.launch {
+            Log.d(TAG, "loadLibraryByStatus called for userId: $userId, status: $status") // Log khi hàm được gọi
             _libraryBooks.value = Resources.Loading()
 
             val result = libraryRepository.getLibraryByStatus(userId, status)
@@ -57,18 +68,25 @@ class LibraryViewModel(
             if (result.isSuccess) {
                 val libraryData = result.getOrNull() ?: emptyList()
                 val libraryItems = libraryData.map { (library, book) ->
+                    Log.d(TAG, "Fetching reading progress for bookId: ${book.bookId}, userId: $userId (by status)") // Log trước khi gọi getReadingProgress
                     val progress = libraryRepository.getReadingProgress(userId, book.bookId)
-                    LibraryItem(library, book, progress)
+                    Log.d(TAG, "Reading progress for ${book.title} (ID: ${book.bookId}): $progress") // Log kết quả lấy progress
+                    val item = LibraryItem(library, book, progress)
+                    Log.d(TAG, "Created LibraryItem: $item") // Log LibraryItem được tạo
+                    item
                 }
                 _libraryBooks.value = Resources.Success(libraryItems)
+                Log.d(TAG, "loadLibraryByStatus: Successfully loaded ${libraryItems.size} books by status.") // Log khi thành công
             } else {
                 _libraryBooks.value = Resources.Error(result.exceptionOrNull() as Exception)
+                Log.e(TAG, "loadLibraryByStatus: Error loading library by status: ${result.exceptionOrNull()?.message}", result.exceptionOrNull()) // Log khi lỗi
             }
         }
     }
 
     fun loadFavoriteBooks(userId: String) {
         viewModelScope.launch {
+            Log.d(TAG, "loadFavoriteBooks called for userId: $userId") // Log khi hàm được gọi
             _libraryBooks.value = Resources.Loading()
 
             val result = libraryRepository.getFavoriteBooks(userId)
@@ -76,12 +94,18 @@ class LibraryViewModel(
             if (result.isSuccess) {
                 val favoriteData = result.getOrNull() ?: emptyList()
                 val libraryItems = favoriteData.map { (library, book) ->
+                    Log.d(TAG, "Fetching reading progress for bookId: ${book.bookId}, userId: $userId (favorites)") // Log trước khi gọi getReadingProgress
                     val progress = libraryRepository.getReadingProgress(userId, book.bookId)
-                    LibraryItem(library, book, progress)
+                    Log.d(TAG, "Reading progress for ${book.title} (ID: ${book.bookId}): $progress") // Log kết quả lấy progress
+                    val item = LibraryItem(library, book, progress)
+                    Log.d(TAG, "Created LibraryItem: $item") // Log LibraryItem được tạo
+                    item
                 }
                 _libraryBooks.value = Resources.Success(libraryItems)
+                Log.d(TAG, "loadFavoriteBooks: Successfully loaded ${libraryItems.size} favorite books.") // Log khi thành công
             } else {
                 _libraryBooks.value = Resources.Error(result.exceptionOrNull() as Exception)
+                Log.e(TAG, "loadFavoriteBooks: Error loading favorite books: ${result.exceptionOrNull()?.message}", result.exceptionOrNull()) // Log khi lỗi
             }
         }
     }
@@ -111,38 +135,6 @@ class LibraryViewModel(
             } else {
                 _removeFromLibraryResult.value = Resources.Error(result.exceptionOrNull() as Exception)
             }
-        }
-    }
-
-    private suspend fun loadLibraryWithProgress(libraryBooks: List<Pair<Library, Book>>) {
-        try {
-            val libraryItems = mutableListOf<LibraryItem>()
-
-            libraryBooks.forEach { (library, book) ->
-                // Get reading progress for each book
-                readingProgressRepository.getReadingProgress(book.bookId)
-                    .catch { e ->
-                        // If error getting progress, add item without progress
-                        libraryItems.add(LibraryItem(library, book, null))
-                    }
-                    .collect { progressResource ->
-                        when (progressResource) {
-                            is Resources.Success -> {
-                                libraryItems.add(LibraryItem(library, book, progressResource.data))
-                            }
-                            is Resources.Error -> {
-                                libraryItems.add(LibraryItem(library, book, null))
-                            }
-                            is Resources.Loading -> {
-                                // Continue with existing item if loading
-                            }
-                        }
-                    }
-            }
-
-            _libraryBooks.value = Resources.Success(libraryItems)
-        } catch (e: Exception) {
-            _libraryBooks.value = Resources.Error(e)
         }
     }
 

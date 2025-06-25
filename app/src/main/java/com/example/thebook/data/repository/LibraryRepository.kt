@@ -5,6 +5,7 @@ import com.example.thebook.data.model.Book
 import com.example.thebook.data.model.Library
 import com.example.thebook.data.model.ReadingProgress
 import com.example.thebook.data.model.ReadingStatus
+import com.example.thebook.ui.library.LibraryItem
 import com.google.firebase.database.*
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -78,26 +79,27 @@ class LibraryRepository {
     }
 
     // Lấy danh sách sách trong thư viện
-    suspend fun getUserLibrary(userId: String): Result<List<Pair<Library, Book>>> {
+    suspend fun getUserLibrary(userId: String): Result<List<LibraryItem>> {
         return try {
             val librarySnapshot = libraryRef.child(userId).get().await()
-            val libraryBooks = mutableListOf<Pair<Library, Book>>()
+            val libraryItems = mutableListOf<LibraryItem>()
 
             for (libraryChild in librarySnapshot.children) {
                 val libraryItem = libraryChild.getValue(Library::class.java)
                 libraryItem?.let { library ->
-                    // Lấy thông tin sách
                     val bookSnapshot = booksRef.child(library.bookId).get().await()
                     val book = bookSnapshot.getValue(Book::class.java)
-                    book?.let {
-                        libraryBooks.add(Pair(library, it))
+                    book?.let { bookData ->
+                        // Lấy tiến độ đọc cho cuốn sách này
+                        val progressId = "${userId}_${bookData.bookId}"
+                        val progressSnapshot = readingProgressRef.child(progressId).get().await()
+                        val readingProgress = progressSnapshot.getValue(ReadingProgress::class.java)
+
+                        libraryItems.add(LibraryItem(library, bookData, readingProgress))
                     }
                 }
             }
-
-            // Sắp xếp theo addedAt (giảm dần)
-            val sortedBooks = libraryBooks.sortedByDescending { it.first.addedAt }
-
+            val sortedBooks = libraryItems.sortedByDescending { it.library.addedAt }
             Log.d(TAG, "Retrieved ${sortedBooks.size} books from library")
             Result.success(sortedBooks)
         } catch (e: Exception) {
@@ -149,41 +151,50 @@ class LibraryRepository {
 
     // Lấy tiến độ đọc
     suspend fun getReadingProgress(userId: String, bookId: String): ReadingProgress? {
+        Log.d(TAG, "Attempting to get reading progress for userId: $userId, bookId: $bookId") // Log 1
         return try {
-            val query = readingProgressRef.child(userId).orderByChild("bookId").equalTo(bookId)
-            val snapshot = query.get().await()
+            val progressKey = "${userId}_$bookId"
+            val snapshot = readingProgressRef.child(progressKey).get().await()
+
+            Log.d(TAG, "Snapshot exists: ${snapshot.exists()}")
 
             if (snapshot.exists()) {
-                snapshot.children.first().getValue(ReadingProgress::class.java)
+                val progress = snapshot.getValue(ReadingProgress::class.java)
+                Log.d(TAG, "Reading progress fetched successfully: $progress")
+                progress
             } else {
+                Log.d(TAG, "No reading progress found for progressKey: $progressKey")
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting reading progress", e)
+            Log.e(TAG, "Error getting reading progress for userId: $userId, bookId: $bookId: ${e.message}", e) // Log 5
             null
         }
     }
 
     // Lọc thư viện theo trạng thái
-    suspend fun getLibraryByStatus(userId: String, status: ReadingStatus): Result<List<Pair<Library, Book>>> {
+    suspend fun getLibraryByStatus(userId: String, status: ReadingStatus): Result<List<LibraryItem>> {
+        // ... (logic tương tự như getUserLibrary, thêm fetching ReadingProgress)
         return try {
             val librarySnapshot = libraryRef.child(userId).orderByChild("readingStatus").equalTo(status.name).get().await()
-            val libraryBooks = mutableListOf<Pair<Library, Book>>()
+            val libraryItems = mutableListOf<LibraryItem>()
 
             for (libraryChild in librarySnapshot.children) {
                 val libraryItem = libraryChild.getValue(Library::class.java)
                 libraryItem?.let { library ->
                     val bookSnapshot = booksRef.child(library.bookId).get().await()
                     val book = bookSnapshot.getValue(Book::class.java)
-                    book?.let {
-                        libraryBooks.add(Pair(library, it))
+                    book?.let { bookData ->
+                        val progressId = "${userId}_${bookData.bookId}"
+                        val progressSnapshot = readingProgressRef.child(progressId).get().await()
+                        val readingProgress = progressSnapshot.getValue(ReadingProgress::class.java)
+
+                        libraryItems.add(LibraryItem(library, bookData, readingProgress))
                     }
                 }
             }
 
-            // Sắp xếp theo lastReadAt (giảm dần)
-            val sortedBooks = libraryBooks.sortedByDescending { it.first.lastReadAt ?: 0 }
-
+            val sortedBooks = libraryItems.sortedByDescending { it.library.lastReadAt ?: 0 }
             Result.success(sortedBooks)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting library by status", e)
@@ -192,25 +203,28 @@ class LibraryRepository {
     }
 
     // Lấy sách yêu thích
-    suspend fun getFavoriteBooks(userId: String): Result<List<Pair<Library, Book>>> {
+    suspend fun getFavoriteBooks(userId: String): Result<List<LibraryItem>> {
+        // ... (logic tương tự như getUserLibrary, thêm fetching ReadingProgress)
         return try {
             val librarySnapshot = libraryRef.child(userId).orderByChild("isFavorite").equalTo(true).get().await()
-            val favoriteBooks = mutableListOf<Pair<Library, Book>>()
+            val favoriteItems = mutableListOf<LibraryItem>()
 
             for (libraryChild in librarySnapshot.children) {
                 val libraryItem = libraryChild.getValue(Library::class.java)
                 libraryItem?.let { library ->
                     val bookSnapshot = booksRef.child(library.bookId).get().await()
                     val book = bookSnapshot.getValue(Book::class.java)
-                    book?.let {
-                        favoriteBooks.add(Pair(library, it))
+                    book?.let { bookData ->
+                        val progressId = "${userId}_${bookData.bookId}"
+                        val progressSnapshot = readingProgressRef.child(progressId).get().await()
+                        val readingProgress = progressSnapshot.getValue(ReadingProgress::class.java)
+
+                        favoriteItems.add(LibraryItem(library, bookData, readingProgress))
                     }
                 }
             }
 
-            // Sắp xếp theo addedAt (giảm dần)
-            val sortedBooks = favoriteBooks.sortedByDescending { it.first.addedAt }
-
+            val sortedBooks = favoriteItems.sortedByDescending { it.library.addedAt }
             Result.success(sortedBooks)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting favorite books", e)
