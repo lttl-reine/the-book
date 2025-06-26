@@ -26,6 +26,7 @@ import com.example.thebook.databinding.FragmentBookDetailBinding
 import com.example.thebook.ui.library.LibraryViewModel
 import com.example.thebook.ui.library.LibraryViewModelFactory
 import com.example.thebook.utils.Resources
+import com.example.thebook.utils.setupSystemUI
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -63,6 +64,12 @@ class BookDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "bookId = ${args.bookId}")
 
+        setupSystemUI(
+            statusBarColorResId = R.color.white,
+            isAppearanceLightStatusBars = true,
+            applyInsetsToRoot = true
+        )
+
         setupUI()
         setupRecyclerView()
         observeBookDetails()
@@ -74,12 +81,12 @@ class BookDetailFragment : Fragment() {
 
     private fun setupUI() {
         // Handle back button
-        binding.btnBack.setOnClickListener {
+        binding.headerBar.btnBack.setOnClickListener {
             findNavController().navigateUp()
         }
 
         // Handle more button
-        binding.btnMenu.setOnClickListener {
+        binding.headerBar.btnMenu.setOnClickListener {
             Toast.makeText(context, "Menu clicked", Toast.LENGTH_LONG).show()
         }
 
@@ -323,7 +330,7 @@ class BookDetailFragment : Fragment() {
                 .into(imgBookCover)
 
             // Book Info
-            tvTitle.text = book.title
+            headerBar.tvTitle.text = book.title
             tvBookTitle.text = book.title
             tvAuthor.text = book.author
 

@@ -4,7 +4,7 @@
     <item
         android:id="@+id/action_mark_reading"
         android:title="Đánh dấu đang đọc"
-        android:icon="@drawable/ic_book_24" />
+        android:icon="@drawable/ic_library_24" />
 
     <item
         android:id="@+id/action_mark_finished"

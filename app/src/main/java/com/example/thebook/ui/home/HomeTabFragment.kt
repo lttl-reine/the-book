@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.thebook.databinding.FragmentHomeTabBinding
 import com.example.thebook.ui.auth.AuthViewModel
+import com.example.thebook.utils.setupSystemUI
 import kotlinx.coroutines.launch
 
 class HomeTabFragment : Fragment() {
@@ -59,7 +60,11 @@ class HomeTabFragment : Fragment() {
             findNavController().navigate(R.id.action_global_to_searchFragment)
         }
 
-        setupSystemUI()
+        setupSystemUI(
+            statusBarColorResId = R.color.white,
+            isAppearanceLightStatusBars = true,
+            applyInsetsToRoot = true
+        )
         setupRecyclerViews()
         setupTabClickListeners()
         observeBooks()
@@ -71,49 +76,21 @@ class HomeTabFragment : Fragment() {
     }
 
     private fun getCurrentUserType() {
-        // 1. Kích hoạt việc fetch thông tin người dùng từ AuthViewModel
         authViewModel.fetchCurrentUser()
 
-        // 2. Quan sát LiveData 'currentUser' để nhận được đối tượng User đầy đủ
         authViewModel.currentUser.observe(viewLifecycleOwner) { user ->
             user?.let {
-                // User object không null, kiểm tra userType
                 Log.d("HomeTabFragment", "User UID: ${it.uid}, UserType: ${it.userType}")
-                Toast.makeText(context, "Chào mừng! Loại người dùng: ${it.userType}", Toast.LENGTH_LONG).show()
 
-                // Điều khiển hiển thị fabAddBook dựa trên userType
                 if (it.userType == "admin") {
                     binding.fabAddBook.visibility = View.VISIBLE
                 } else {
                     binding.fabAddBook.visibility = View.GONE
                 }
             } ?: run {
-                // User object là null, ẩn fabAddBook và log/toast thông báo
-                Log.w("HomeTabFragment", "Không thể lấy thông tin người dùng. Ẩn nút thêm sách.")
-                Toast.makeText(context, "Không thể tải dữ liệu người dùng.", Toast.LENGTH_SHORT).show()
-                binding.fabAddBook.visibility = View.GONE // Đảm bảo ẩn nút nếu không có user
+                Log.d("HomeTabFragment", "Không thể lấy thông tin người dùng. Ẩn nút thêm sách.")
+                binding.fabAddBook.visibility = View.GONE
             }
-        }
-    }
-
-
-    // Add padding for status bar and change text color
-    private fun setupSystemUI() {
-
-        val statusBarBackgroundColor = ContextCompat.getColor(requireContext(), R.color.white)
-
-        requireActivity().window.apply {
-            statusBarColor = statusBarBackgroundColor
-            ViewCompat.getWindowInsetsController(decorView)?.let { controller ->
-                controller.isAppearanceLightStatusBars = true
-            }
-        }
-
-        // Apply insets to the root view to push content below the status bar
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(view.paddingLeft, systemBarsInsets.top, view.paddingRight, view.paddingBottom)
-            insets
         }
     }
 

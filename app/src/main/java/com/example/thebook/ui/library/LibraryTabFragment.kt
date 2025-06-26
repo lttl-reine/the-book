@@ -17,6 +17,7 @@ import com.example.thebook.data.repository.LibraryRepository
 import com.example.thebook.data.repository.ReadingProgressRepository
 import com.example.thebook.databinding.FragmentLibraryTabBinding
 import com.example.thebook.utils.Resources
+import com.example.thebook.utils.setupSystemUI
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -48,6 +49,12 @@ class LibraryTabFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupSystemUI(
+            statusBarColorResId = R.color.white,
+            isAppearanceLightStatusBars = true,
+            applyInsetsToRoot = true
+        )
 
         setupRecyclerView()
         setupFilterChips()

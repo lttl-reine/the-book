@@ -1,365 +1,376 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:fillViewport="true">
+    android:background="@android:color/white">
 
-    <LinearLayout
+    <!-- Fixed Header Bar - Always on top -->
+    <include
+        android:id="@+id/header_bar"
+        layout="@layout/layout_detail_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_alignParentTop="true"
+        android:elevation="4dp"
+        android:background="@android:color/white" />
 
-        <!-- Header với nút back và menu -->
-        <include
-            android:id="@+id/header_bar"
-            layout="@layout/layout_detail_header"/>
+    <!-- Scrollable Content Below Header -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header_bar"
+        android:fillViewport="true">
 
-
-        <!-- Book Cover -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center"
-            android:padding="24dp">
+            android:padding="16dp">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="120dp"
-                android:layout_height="180dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+            <!-- Book Cover -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="24dp">
 
-                <ImageView
-                    android:id="@+id/img_book_cover"
+                <androidx.cardview.widget.CardView
                     android:layout_width="120dp"
                     android:layout_height="180dp"
-                    android:scaleType="centerCrop"
-                    android:background="@drawable/book_cover_placeholder"/>
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
 
-            </androidx.cardview.widget.CardView>
+                    <ImageView
+                        android:id="@+id/img_book_cover"
+                        android:layout_width="120dp"
+                        android:layout_height="180dp"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/book_cover_placeholder"/>
 
-        </LinearLayout>
-
-        <!-- Book Info -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- Title -->
-            <TextView
-                android:id="@+id/tv_book_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Atomic Habits"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:gravity="start"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Author and Year -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="start"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/tv_author"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="James Clear"
-                    android:textSize="14sp"
-                    android:textColor="@color/primary_700" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" • "
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray" />
-
-                <TextView
-                    android:id="@+id/tv_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Self-help"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" • "
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray" />
-
-                <TextView
-                    android:id="@+id/tv_year"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2018"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray" />
+                </androidx.cardview.widget.CardView>
 
             </LinearLayout>
 
-            <!-- Description -->
-            <TextView
-                android:id="@+id/tv_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="An easy &amp; proven way to build good habits and break bad ones. Atomic Habits offers a proven framework for improving--every day."
-                android:textSize="14sp"
-                android:textColor="@android:color/black"
-                android:lineSpacingExtra="2dp"
-                android:justificationMode="inter_word"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:id="@+id/tv_read_more"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đọc thêm..."
-                android:textSize="14sp"
-                android:textColor="@color/primary_700"
-                android:layout_gravity="center"
-                android:layout_marginBottom="24dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground" />
-
-        </LinearLayout>
-
-        <!-- Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="32dp">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_start_reading"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="📖 Bắt đầu đọc"
-                android:textColor="@android:color/white"
-                android:background="@drawable/btn_primary_background"
-                android:layout_marginEnd="8dp"
-                android:textAllCaps="false" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_add_library"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="+ Thêm vào thư viện"
-                android:textColor="@android:color/black"
-                android:background="@drawable/btn_secondary_background"
-                android:layout_marginStart="8dp"
-                android:textAllCaps="false" />
-
-        </LinearLayout>
-
-        <!-- Ratings & Reviews Section -->
-        <LinearLayout
-            android:id="@+id/layout_reviews_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <!-- Section Header -->
+            <!-- Book Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:orientation="vertical">
 
+                <!-- Title -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:id="@+id/tv_book_title"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Xếp hạng &amp; đánh giá"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btn_write_review"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="✍️ Viết đánh giá"
-                    android:textSize="12sp"
-                    android:textColor="@color/primary_700"
-                    android:background="@drawable/btn_secondary_background"
-                    android:paddingHorizontal="12dp"
-                    android:textAllCaps="false" />
-
-            </LinearLayout>
-
-            <!-- Rating Summary -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/tv_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4.7/5"
-                    android:textSize="16sp"
+                    android:text="Atomic Habits"
+                    android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/black"
-                    android:layout_marginEnd="12dp"/>
+                    android:gravity="start"
+                    android:layout_marginBottom="8dp" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_star_24"
-                    android:layout_marginEnd="2dp" />
-
-                <TextView
-                    android:id="@+id/tv_review_count"
-                    android:layout_width="wrap_content"
+                <!-- Author and Year -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="1,200 Lượt đánh giá"
+                    android:orientation="horizontal"
+                    android:gravity="start"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_author"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="James Clear"
+                        android:textSize="14sp"
+                        android:textColor="@color/primary_700" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • "
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/tv_category"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Self-help"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • "
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/tv_year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2018"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray" />
+
+                </LinearLayout>
+
+                <!-- Description -->
+                <TextView
+                    android:id="@+id/tv_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="An easy &amp; proven way to build good habits and break bad ones. Atomic Habits offers a proven framework for improving--every day."
                     android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:layout_marginStart="12dp" />
-
-            </LinearLayout>
-
-            <!-- Review Items -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_reviews"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="2"
-                tools:listitem="@layout/item_review" />
-
-            <TextView
-                android:id="@+id/tv_see_all_reviews"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Xem tất cả"
-                android:textSize="14sp"
-                android:textColor="@color/primary_700"
-                android:layout_gravity="end"
-                android:layout_marginTop="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground" />
-
-        </LinearLayout>
-
-        <!-- Empty Reviews State -->
-        <LinearLayout
-            android:id="@+id/layout_empty_reviews"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="32dp"
-            android:layout_marginBottom="24dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@drawable/ic_star_24"
-                android:alpha="0.3"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chưa có đánh giá nào"
-                android:textSize="16sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hãy là người đầu tiên đánh giá cuốn sách này!"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray"
-                android:gravity="center"
-                android:layout_marginBottom="16dp" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_write_first_review"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="✍️ Viết đánh giá đầu tiên"
-                android:textColor="@android:color/white"
-                android:background="@drawable/btn_primary_background"
-                android:paddingHorizontal="24dp"
-                android:textAllCaps="false" />
-
-        </LinearLayout>
-
-        <!-- Related Books Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                    android:textColor="@android:color/black"
+                    android:lineSpacingExtra="2dp"
+                    android:justificationMode="inter_word"
+                    android:layout_marginBottom="8dp" />
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Sách tương tự"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black" />
-
-                <TextView
-                    android:id="@+id/tv_see_all_related"
+                    android:id="@+id/tv_read_more"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
+                    android:text="Đọc thêm..."
                     android:textSize="14sp"
                     android:textColor="@color/primary_700"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="24dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground" />
 
             </LinearLayout>
 
-            <!--            <androidx.recyclerview.widget.RecyclerView-->
-            <!--                android:id="@+id/rv_related_books"-->
-            <!--                android:layout_width="match_parent"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:orientation="horizontal"-->
-            <!--                android:nestedScrollingEnabled="false"-->
-            <!--                tools:itemCount="3"-->
-            <!--                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"-->
-            <!--                tools:listitem="@layout/item_related_book" />-->
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="32dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_start_reading"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="Bắt đầu đọc"
+                    app:icon="@drawable/ic_book_16"
+                    app:iconTint=""
+                    app:iconGravity="textStart"
+                    android:textColor="@color/white"
+                    android:background="@drawable/btn_primary_background"
+                    app:backgroundTint="@null"
+                    android:layout_marginEnd="8dp"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_add_library"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="Thêm vào thư viện"
+                    android:textSize="12sp"
+                    app:icon="@drawable/ic_plus_16"
+                    app:iconGravity="textStart"
+                    app:iconTint="@color/black"
+                    android:textColor="@android:color/black"
+                    app:backgroundTint="@null"
+                    android:background="@drawable/btn_secondary_background"
+                    android:layout_marginStart="8dp"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <!-- Ratings & Reviews Section -->
+            <LinearLayout
+                android:id="@+id/layout_reviews_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+
+                <!-- Section Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Xếp hạng &amp; đánh giá"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/black" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_write_review"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:text="✍️ Viết đánh giá"
+                        android:textSize="12sp"
+                        android:textColor="@color/primary_700"
+                        android:background="@drawable/btn_secondary_background"
+                        android:paddingHorizontal="12dp"
+                        android:textAllCaps="false" />
+
+                </LinearLayout>
+
+                <!-- Rating Summary -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4.7/5"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/black"
+                        android:layout_marginEnd="12dp"/>
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_star_24"
+                        android:layout_marginEnd="2dp" />
+
+                    <TextView
+                        android:id="@+id/tv_review_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1,200 Lượt đánh giá"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:layout_marginStart="12dp" />
+
+                </LinearLayout>
+
+                <!-- Review Items -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_reviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:itemCount="2"
+                    tools:listitem="@layout/item_review" />
+
+                <TextView
+                    android:id="@+id/tv_see_all_reviews"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Xem tất cả"
+                    android:textSize="14sp"
+                    android:textColor="@color/primary_700"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+
+            </LinearLayout>
+
+            <!-- Empty Reviews State -->
+            <LinearLayout
+                android:id="@+id/layout_empty_reviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@drawable/ic_star_24"
+                    android:alpha="0.3"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa có đánh giá nào"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hãy là người đầu tiên đánh giá cuốn sách này!"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_write_first_review"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="✍️ Viết đánh giá đầu tiên"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/btn_primary_background"
+                    android:paddingHorizontal="24dp"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
+
+            <!-- Related Books Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sách tương tự"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:id="@+id/tv_see_all_related"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textSize="14sp"
+                        android:textColor="@color/primary_700"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+    </ScrollView>
 
-</ScrollView>
+</RelativeLayout>

@@ -78,7 +78,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:scaleType="center"
-                    android:src="@drawable/ic_plus_24" />
+                    android:src="@drawable/ic_plus_cirle_16" />
 
             </LinearLayout>
 
@@ -212,7 +212,7 @@
         android:clickable="true"
         android:contentDescription="Add new book"
         android:focusable="true"
-        android:src="@drawable/ic_plus_24"
+        android:src="@drawable/ic_plus_cirle_16"
         android:visibility="gone"
         app:tint="@color/black"
         app:backgroundTint="?attr/colorPrimary" />

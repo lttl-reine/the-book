@@ -130,7 +130,7 @@
             <ImageView
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:src="@drawable/ic_book_24"
+                android:src="@drawable/ic_library_24"
                 android:alpha="0.3"
                 android:layout_marginBottom="16dp" />
 

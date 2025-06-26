@@ -66,11 +66,11 @@ class ProfileTabFragment : Fragment() {
     private fun setupClickListeners() {
         binding.apply {
             // Navigation clicks
-            ivBack.setOnClickListener {
+            headerBar.btnBack.setOnClickListener {
                 requireActivity().onBackPressed()
             }
 
-            ivSettings.setOnClickListener {
+            headerBar.btnMenu.setOnClickListener {
                 // Navigate to general settings
                 showToast("Settings coming soon")
             }
