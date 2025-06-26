@@ -14,44 +14,10 @@
         android:padding="16dp">
 
         <!-- Header với nút back và menu -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:background="@android:color/white"
-            android:elevation="4dp"
-            android:layout_marginTop="16dp">
+        <include
+            android:id="@+id/header_bar"
+            layout="@layout/layout_detail_header"/>
 
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back_24"
-                android:contentDescription="Back" />
-
-            <TextView
-                android:id="@+id/tv_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Atomic Habits"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:gravity="center" />
-
-            <ImageButton
-                android:id="@+id/btn_menu"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@drawable/ic_background_primary"
-                android:src="@drawable/ic_more_vert_24"
-                android:contentDescription="Menu" />
-
-        </LinearLayout>
 
         <!-- Book Cover -->
         <LinearLayout

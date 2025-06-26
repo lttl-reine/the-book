@@ -97,15 +97,22 @@ class HomeTabFragment : Fragment() {
     }
 
 
+    // Add padding for status bar and change text color
     private fun setupSystemUI() {
+
+        val statusBarBackgroundColor = ContextCompat.getColor(requireContext(), R.color.white)
+
         requireActivity().window.apply {
-            // Change status bar background color
-            statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary_500)
+            statusBarColor = statusBarBackgroundColor
+            ViewCompat.getWindowInsetsController(decorView)?.let { controller ->
+                controller.isAppearanceLightStatusBars = true
+            }
         }
 
-        // WindowInsetsCompat to handle padding status bar
+        // Apply insets to the root view to push content below the status bar
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(view.paddingLeft, systemBarsInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
     }
@@ -119,9 +126,6 @@ class HomeTabFragment : Fragment() {
 
         binding.rvBooks.apply {
             adapter = bookAdapter
-            setHasFixedSize(true)
-            // GridLayoutManager cho tất cả sách (2 cột)
-            layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 2)
         }
 
         // Setup cho sách đọc gần đây

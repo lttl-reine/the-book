@@ -13,14 +13,14 @@
 
         <include
             android:id="@+id/header_bar"
-            layout="@layout/header_bar_layout" />
+            layout="@layout/layout_main_header" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
             android:background="#F8F8F8"
-            android:paddingVertical="8dp">
+            android:paddingVertical="8dp"
+            android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -32,53 +32,53 @@
                     android:id="@+id/tv_all"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:text="All"
-                    android:textSize="14sp"
-                    android:textColor="#FFFFFF"
+                    android:layout_marginEnd="8dp"
                     android:background="@drawable/tab_selected_background"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:text="All"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/tv_currently_reading"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:text="Currently Reading"
-                    android:textSize="14sp"
-                    android:textColor="#666666"
+                    android:layout_marginEnd="8dp"
                     android:background="@drawable/tab_unselected_background"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:text="Currently Reading"
+                    android:textColor="#666666"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/tv_completed"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
-                    android:text="Completed"
-                    android:textSize="14sp"
-                    android:textColor="#666666"
+                    android:layout_marginEnd="8dp"
                     android:background="@drawable/tab_unselected_background"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:text="Completed"
+                    android:textColor="#666666"
+                    android:textSize="14sp" />
 
                 <ImageView
                     android:id="@+id/iv_add_filter"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:src="@drawable/ic_plus_24"
                     android:background="@color/white"
                     android:clickable="true"
                     android:focusable="true"
-                    android:scaleType="center" />
+                    android:scaleType="center"
+                    android:src="@drawable/ic_plus_24" />
 
             </LinearLayout>
 
@@ -87,50 +87,50 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
                 android:text="Sort by:"
-                android:textSize="14sp"
                 android:textColor="#666666"
-                android:layout_marginEnd="16dp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tv_sort_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Title"
-                android:textSize="14sp"
-                android:textColor="#007AFF"
-                android:textStyle="bold"
                 android:layout_marginEnd="16dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:text="Title"
+                android:textColor="#007AFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tv_sort_author"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Author"
-                android:textSize="14sp"
-                android:textColor="#666666"
                 android:layout_marginEnd="16dp"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:text="Author"
+                android:textColor="#666666"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tv_sort_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Progress"
-                android:textSize="14sp"
-                android:textColor="#666666"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:text="Progress"
+                android:textColor="#666666"
+                android:textSize="14sp" />
 
         </LinearLayout>
 
@@ -141,45 +141,64 @@
             android:layout_gravity="center"
             android:progress="50"
             android:visibility="gone"
-            app:indicatorColor="?attr/colorSecondary"/>
+            app:indicatorColor="?attr/colorSecondary" />
 
         <TextView
             android:id="@+id/tv_recently_read_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
             android:text="Recently Read"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:visibility="gone" /> <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_recently_read_books"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:visibility="gone" tools:listitem="@layout/item_book_horizontal" app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_recently_read_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_book_horizontal" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
             android:text="All Books"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp" />
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_books"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:padding="16dp"
-            tools:listitem="@layout/item_book"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="2" />
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_book" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:text="Newest"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_newest_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_book" />
 
     </LinearLayout>
 

@@ -6,41 +6,9 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Top Bar with Back Button -->
-    <LinearLayout
-        android:id="@+id/layout_top_bar"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/white"
-        android:elevation="2dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/btn_back"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:src="@drawable/ic_arrow_back_24"
-            android:tint="@color/black" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Search"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
+    <include
+        android:id="@+id/header_bar"
+        layout="@layout/layout_navigation_header"/>
 
     <!-- Search View -->
     <androidx.appcompat.widget.SearchView
@@ -55,7 +23,7 @@
         app:iconifiedByDefault="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_top_bar"
+        app:layout_constraintTop_toBottomOf="@id/header_bar"
         app:queryBackground="@android:color/transparent"
         app:searchIcon="@drawable/ic_search_24" />
 
