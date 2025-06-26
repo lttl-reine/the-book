@@ -2,6 +2,15 @@
     <string name="app_name">TheBook</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="change_password">Đổi mật khẩu</string>
+    <string name="notifications">Thông báo</string>
+    <string name="log_out">Đăng xuất</string>
+    <string name="reading_preferences">Sở thích\n</string>
+    <string name="edit">Chỉnh sửa\n</string>
+    <string name="books_read">Đã đọc</string>
+    <string name="total_time">Tổng thời gian\n</string>
+    <string name="history">Lịch sử\n</string>
+    <string name="fav_genre">Thể loại yêu thích</string>
 
     <string-array name="sort_options">
         <item>Relevance</item>
