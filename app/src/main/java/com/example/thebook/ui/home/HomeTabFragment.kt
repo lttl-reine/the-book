@@ -19,6 +19,7 @@ import com.example.thebook.utils.Resources
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.thebook.databinding.FragmentHomeTabBinding
+import com.example.thebook.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
 class HomeTabFragment : Fragment() {
@@ -28,6 +29,7 @@ class HomeTabFragment : Fragment() {
     private lateinit var bookAdapter: BookAdapter
     private lateinit var recentlyReadBooksAdapter: BookAdapter
     private val homeViewModel : HomeViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
 
     // Enum để quản lý các tab
     private enum class BookFilter {
@@ -53,8 +55,8 @@ class HomeTabFragment : Fragment() {
         }
 
         // Handle search book
-        binding.btnSearch.setOnClickListener {
-            findNavController().navigate(R.id.action_homeTabFragment_to_searchFragment)
+        binding.headerBar.ivSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_global_to_searchFragment)
         }
 
         setupSystemUI()
@@ -62,7 +64,38 @@ class HomeTabFragment : Fragment() {
         setupTabClickListeners()
         observeBooks()
         observeRecentlyReadBooks()
+
+        getCurrentUserType()
+
+
     }
+
+    private fun getCurrentUserType() {
+        // 1. Kích hoạt việc fetch thông tin người dùng từ AuthViewModel
+        authViewModel.fetchCurrentUser()
+
+        // 2. Quan sát LiveData 'currentUser' để nhận được đối tượng User đầy đủ
+        authViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            user?.let {
+                // User object không null, kiểm tra userType
+                Log.d("HomeTabFragment", "User UID: ${it.uid}, UserType: ${it.userType}")
+                Toast.makeText(context, "Chào mừng! Loại người dùng: ${it.userType}", Toast.LENGTH_LONG).show()
+
+                // Điều khiển hiển thị fabAddBook dựa trên userType
+                if (it.userType == "admin") {
+                    binding.fabAddBook.visibility = View.VISIBLE
+                } else {
+                    binding.fabAddBook.visibility = View.GONE
+                }
+            } ?: run {
+                // User object là null, ẩn fabAddBook và log/toast thông báo
+                Log.w("HomeTabFragment", "Không thể lấy thông tin người dùng. Ẩn nút thêm sách.")
+                Toast.makeText(context, "Không thể tải dữ liệu người dùng.", Toast.LENGTH_SHORT).show()
+                binding.fabAddBook.visibility = View.GONE // Đảm bảo ẩn nút nếu không có user
+            }
+        }
+    }
+
 
     private fun setupSystemUI() {
         requireActivity().window.apply {

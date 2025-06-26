@@ -12,6 +12,42 @@
     <string name="history">Lịch sử\n</string>
     <string name="fav_genre">Thể loại yêu thích</string>
 
+    <!--  Login Fragment  -->
+    <string name="welcome_back_title">Chào mừng trở lại!</string>
+    <string name="email_label">Email</string>
+    <string name="hint_email">Nhập email</string>
+    <string name="password_label">Mật khẩu</string>
+    <string name="hint_password">Nhập mật khẩu</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="or_divider">hoặc</string>
+    <string name="login_with_google">Đăng nhập với Google</string>
+    <string name="login_with_apple">Đăng nhập với Apple</string>
+    <string name="no_account_prompt">Bạn không có tài khoản? </string>
+    <string name="sign_up_link">Đăng ký</string>
+
+    <!--  Forget password Fragment  -->
+    <string name="forgot_password_title">Đặt lại mật khẩu</string>
+    <string name="forgot_password_description">Nhập địa chỉ email của bạn dưới đây để nhận liên kết đặt lại mật khẩu.</string>
+    <string name="reset_password_button">Xác nhận</string>
+    <string name="back_to_login">Quay lại đăng nhập</string>
+    <string name="email_sent_success">Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.</string>
+    <string name="reset_password_error">Không thể gửi liên kết đặt lại mật khẩu. Vui lòng thử lại.</string>
+    <string name="invalid_email_format">Vui lòng nhập địa chỉ email hợp lệ.</string>
+
+    <!-- Register Fragment -->
+    <string name="create_account_title">Tạo tài khoản!</string>
+    <string name="full_name_label">Họ tên</string>
+    <string name="hint_full_name">Nhập họ tên</string>
+    <string name="confirm_password_label">Xác nhận mật khẩu</string>
+    <string name="hint_confirm_password">Nhập lại mật khẩu</string>
+    <string name="register_button">Đăng ký</string>
+    <string name="register_with_google">Đăng ký với Google</string>
+    <string name="register_with_apple">Đăng ký với Apple</string>
+    <string name="already_have_account_prompt">Bạn đã có tài khoản? </string>
+
+
+    <string name="login_link">Đăng nhập</string>
     <string-array name="sort_options">
         <item>Relevance</item>
         <item>Title A-Z</item>

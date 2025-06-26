@@ -5,6 +5,11 @@
     android:id="@+id/nav_graph_bottom"
     app:startDestination="@id/homeTabFragment">
 
+    <action
+        android:id="@+id/action_global_to_searchFragment"
+        app:destination="@id/searchFragment"
+        app:popUpToInclusive="true" />
+
     <fragment
         android:id="@+id/homeTabFragment"
         android:name="com.example.thebook.ui.home.HomeTabFragment"
@@ -25,7 +30,9 @@
         <action
             android:id="@+id/action_homeTabFragment_to_searchFragment"
             app:destination="@id/searchFragment" />
-
+<!--        <argument -->
+<!--            android:name="userType"-->
+<!--            app:argType="String"/>-->
     </fragment>
     <fragment
         android:id="@+id/profileTabFragment"

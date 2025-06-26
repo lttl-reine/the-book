@@ -108,4 +108,28 @@ class AuthRepository {
     fun getCurrentUserId(): String? {
         return firebaseAuth.currentUser?.uid
     }
+
+    fun getCurrentUserType(userId: String, callback: (String?) -> Unit) {
+        usersRef.child(userId).child("userType").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val userType = snapshot.getValue(String::class.java)
+                callback(userType)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Failed to get user type for $userId: ${error.message}", error.toException())
+                callback(null)
+            }
+        })
+    }
+
+    suspend fun sendPasswordResetEmail(email: String) {
+        try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Log.d(TAG, "Password reset email sent to $email")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send password reset email to $email: ${e.message}", e)
+            throw e
+        }
+    }
 }

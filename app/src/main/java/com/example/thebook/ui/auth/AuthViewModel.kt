@@ -58,5 +58,23 @@ class AuthViewModel : ViewModel() {
             _currentUser.value = authRepository.getCurrentUser()
         }
     }
+
+    fun getCurrentUserId() : String? {
+        return authRepository.getCurrentUserId()
+    }
+
+
+    // Password reset
+    fun sendPasswordResetEmail(email: String) {
+        Log.d(TAG, "Initiating password reset for email: $email")
+        viewModelScope.launch {
+            _authState.value = Resources.Loading() // Indicate loading state
+            try {
+                authRepository.sendPasswordResetEmail(email)
+            } catch (e: Exception) {
+                _authState.value = Resources.Error(e) // Indicate error
+            }
+        }
+    }
 }
 

@@ -56,24 +56,61 @@ class RegisterFragment : Fragment() {
             when (resource) {
                 is Resources.Loading -> {
                     Log.d(TAG, "Registration in progress")
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.btnRegister.isEnabled = false
+                    showLoadingState() // Use the unified loading state method
                 }
                 is Resources.Success -> {
-                    Log.d(TAG, "Registration successful: ${resource.data.email}")
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnRegister.isEnabled = true
-                    Toast.makeText(context, "Đăng ký thành công: ${resource.data.email}", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "Registration successful: ${binding.etEmail.text.toString()}")
+                    hideLoadingState() // Use the unified hiding state method
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                 }
                 is Resources.Error -> {
                     Log.e(TAG, "Registration failed: ${resource.exception.message}")
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnRegister.isEnabled = true
+                    hideLoadingState() // Use the unified hiding state method
                     Toast.makeText(context, "Đăng ký thất bại: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    // Show progress bar in button (Solution 1)
+    private fun showLoadingStateInButton() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.btnRegister.text = ""
+        binding.btnRegister.icon = null
+        binding.btnRegister.isEnabled = false
+
+        // Disable other interactive elements
+        binding.etName.isEnabled = false
+        binding.etEmail.isEnabled = false
+        binding.etPassword.isEnabled = false
+        binding.etConfirmPassword.isEnabled = false
+        binding.tvLogin.isEnabled = false
+        binding.btnGoogleLogin.isEnabled = false
+        binding.btnAppleLogin.isEnabled = false
+    }
+
+    private fun hideLoadingStateInButton() {
+        // Show register button again
+        binding.progressBar.visibility = View.GONE
+        binding.btnRegister.setText(R.string.register_button)
+        binding.btnRegister.setIconResource(R.drawable.ic_add_user_24)
+        binding.btnRegister.isEnabled = true
+
+        // Re-enable other interactive elements
+        binding.etName.isEnabled = true
+        binding.etEmail.isEnabled = true
+        binding.etPassword.isEnabled = true
+        binding.etConfirmPassword.isEnabled = true
+        binding.tvLogin.isEnabled = true
+        binding.btnGoogleLogin.isEnabled = true
+        binding.btnAppleLogin.isEnabled = true
+    }
+    private fun showLoadingState() {
+        showLoadingStateInButton()
+    }
+
+    private fun hideLoadingState() {
+        hideLoadingStateInButton()
     }
 
     override fun onDestroyView() {

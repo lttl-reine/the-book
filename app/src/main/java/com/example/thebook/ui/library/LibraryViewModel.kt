@@ -2,17 +2,13 @@ package com.example.thebook.ui.library
 
 import android.util.Log // Import Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.thebook.data.model.Book
-import com.example.thebook.data.model.Library
 import com.example.thebook.data.model.ReadingStatus
 import com.example.thebook.data.repository.LibraryRepository
 import com.example.thebook.data.repository.ReadingProgressRepository
 import com.example.thebook.utils.Resources
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(

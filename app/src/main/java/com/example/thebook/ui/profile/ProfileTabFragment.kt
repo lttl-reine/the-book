@@ -10,13 +10,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.example.thebook.MainActivity
 import com.example.thebook.R
 import com.example.thebook.data.model.ReadingStatus
 import com.example.thebook.data.model.User
+import com.example.thebook.databinding.CustomDialogBinding
 import com.example.thebook.databinding.FragmentProfileTabBinding
+import com.example.thebook.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,6 +31,7 @@ class ProfileTabFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var profileViewModel: ProfileViewModel
+    private val authViewModel: AuthViewModel by viewModels()
 
     companion object {
         private const val TAG = "ProfileTabFragment"
@@ -94,9 +99,7 @@ class ProfileTabFragment : Fragment() {
 //            }
 
             // Logout
-            btnLogout.setOnClickListener {
-                showLogoutConfirmDialog()
-            }
+
 
             // Statistics clicks
             tvBooksCount.setOnClickListener {
@@ -111,6 +114,11 @@ class ProfileTabFragment : Fragment() {
             tvHistoryLabel.setOnClickListener {
                 showReadingDetails("history")
             }
+        }
+
+        binding.btnLogout.setOnClickListener {
+            Log.d(TAG, "Logout button clicked")
+            showLogoutConfirmationDialog()
         }
     }
 
@@ -268,15 +276,30 @@ class ProfileTabFragment : Fragment() {
             .show()
     }
 
-    private fun showLogoutConfirmDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Logout")
-            .setMessage("Are you sure you want to logout?")
-            .setPositiveButton("Logout") { _, _ ->
-                performLogout()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun showLogoutConfirmationDialog() {
+        val dialogBinding = CustomDialogBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .setCancelable(true)
+            .create()
+
+        // Xử lý nút Yes
+        dialogBinding.btnYes.setOnClickListener {
+            authViewModel.logout()
+            val mainActivityNavController = (activity as? MainActivity)?.navController
+            mainActivityNavController?.navigate(R.id.action_global_to_loginFragment)
+
+            dialog.dismiss()
+        }
+
+        // Xử lý nút No
+        dialogBinding.btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Hiển thị dialog với nền trong suốt
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
     }
 
     private fun performLogout() {

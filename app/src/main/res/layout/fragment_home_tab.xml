@@ -15,14 +15,6 @@
             android:id="@+id/header_bar"
             layout="@layout/header_bar_layout" />
 
-        <ImageView
-            android:id="@+id/btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_search_24"
-            android:layout_margin="12dp"
-            android:layout_gravity="center"/>
-
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -202,6 +194,7 @@
         android:contentDescription="Add new book"
         android:focusable="true"
         android:src="@drawable/ic_plus_24"
+        android:visibility="gone"
         app:tint="@color/black"
         app:backgroundTint="?attr/colorPrimary" />
 

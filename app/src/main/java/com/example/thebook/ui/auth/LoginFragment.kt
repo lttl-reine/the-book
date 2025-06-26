@@ -38,8 +38,8 @@ class LoginFragment : Fragment() {
 
         // Handle login button
         binding.btnLogin.setOnClickListener {
-            val email = binding.etEmail.text.toString()
-            val password = binding.etPassword.text.toString()
+            val email = binding.etEmail.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "Login button clicked, attempting login for email: $email")
                 viewModel.login(email, password)
@@ -50,8 +50,12 @@ class LoginFragment : Fragment() {
 
         // Handle sign up text, move to register screen
         binding.tvSignUp.setOnClickListener {
-            Log.d(TAG, "Sign up text clicked, navigating to register")
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+        }
+
+        // Handle forget password
+        binding.tvForgotPassword.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
         }
 
         // Handle state of login
@@ -59,23 +63,60 @@ class LoginFragment : Fragment() {
             when (resource) {
                 is Resources.Loading -> {
                     Log.d(TAG, "Login in progress")
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.btnLogin.isEnabled = false
+                    showLoadingState()
                 }
                 is Resources.Success -> {
-                    Log.d(TAG, "Login successful: ${resource.data.email}")
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnLogin.isEnabled = true
+                    Log.d(TAG, "Login successful: ${resource.data?.email}")
+                    hideLoadingState()
                     findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 }
                 is Resources.Error -> {
-                    Log.e(TAG, "Login failed: ${resource.exception.message}")
-                    binding.progressBar.visibility = View.GONE
-                    binding.btnLogin.isEnabled = true
-                    Toast.makeText(context, "Đăng nhập thất bại: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Login failed: ${resource.exception?.message}")
+                    hideLoadingState()
+                    Toast.makeText(context, "Đăng nhập thất bại: ${resource.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    // Show progress bar in button
+    private fun showLoadingStateInButton() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.btnLogin.text = "" // Ẩn text
+        binding.btnLogin.icon = null // Ẩn icon
+        binding.btnLogin.isEnabled = false
+
+        // Disable other interactive elements
+        binding.etEmail.isEnabled = false
+        binding.etPassword.isEnabled = false
+        binding.tvSignUp.isEnabled = false
+        binding.tvForgotPassword.isEnabled = false
+        binding.btnGoogleLogin.isEnabled = false
+        binding.btnAppleLogin.isEnabled = false
+    }
+
+    private fun hideLoadingStateInButton() {
+        // Show login button again
+        binding.progressBar.visibility = View.GONE
+        binding.btnLogin.setText(R.string.login_button)
+        binding.btnLogin.setIconResource(R.drawable.ic_auth_login_24)
+        binding.btnLogin.isEnabled = true
+
+        // Re-enable other interactive elements
+        binding.etEmail.isEnabled = true
+        binding.etPassword.isEnabled = true
+        binding.tvSignUp.isEnabled = true
+        binding.tvForgotPassword.isEnabled = true
+        binding.btnGoogleLogin.isEnabled = true
+        binding.btnAppleLogin.isEnabled = true
+    }
+
+    private fun showLoadingState() {
+        showLoadingStateInButton()
+    }
+
+    private fun hideLoadingState() {
+        hideLoadingStateInButton()
     }
 
     override fun onDestroyView() {

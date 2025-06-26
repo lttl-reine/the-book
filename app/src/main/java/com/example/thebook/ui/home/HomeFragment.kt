@@ -1,15 +1,20 @@
 package com.example.thebook.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.thebook.R
+import com.example.thebook.data.model.User
+import com.example.thebook.ui.auth.AuthViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeFragment : Fragment() {
@@ -55,6 +60,8 @@ class HomeFragment : Fragment() {
         }
     }
 
+
+
     // Hide BottomNavigationView
     private fun hideBottomNavigationView() {
         if (bottomNavigationView.visibility == View.VISIBLE) {
@@ -78,4 +85,6 @@ class HomeFragment : Fragment() {
                 .start()
         }
     }
+
+
 }
