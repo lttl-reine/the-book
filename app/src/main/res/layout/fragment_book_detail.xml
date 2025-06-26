@@ -161,29 +161,30 @@
                     android:layout_weight="1"
                     android:text="Bắt đầu đọc"
                     app:icon="@drawable/ic_book_16"
-                    app:iconTint=""
                     app:iconGravity="textStart"
                     android:textColor="@color/white"
                     android:background="@drawable/btn_primary_background"
                     app:backgroundTint="@null"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="12dp"
                     android:textAllCaps="false" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_add_library"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
+                    android:layout_marginStart="4dp"
                     android:layout_weight="1"
+                    android:background="@drawable/btn_secondary_background"
                     android:text="Thêm vào thư viện"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
                     android:textSize="12sp"
+                    app:backgroundTint="@null"
                     app:icon="@drawable/ic_plus_16"
                     app:iconGravity="textStart"
-                    app:iconTint="@color/black"
-                    android:textColor="@android:color/black"
-                    app:backgroundTint="@null"
-                    android:background="@drawable/btn_secondary_background"
-                    android:layout_marginStart="8dp"
-                    android:textAllCaps="false" />
+                    android:layout_marginBottom="12dp"
+                    app:iconTint="@color/black" />
 
             </LinearLayout>
 

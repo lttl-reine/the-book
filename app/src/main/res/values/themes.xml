@@ -15,9 +15,6 @@
         <item name="colorSecondary">@color/secondary_500</item>
         <item name="colorSecondaryVariant">@color/secondary_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <!-- Ripple effect for selectable items -->
-
-        <item name="android:statusBarColor">@color/primary_500</item>
 
     </style>
 

@@ -32,4 +32,19 @@
     <color name="error">#FF0000</color>
     <color name="success">#00FF00</color>
     <color name="warning">#FFFF00</color>
+
+    <color name="colorPrimary">@color/primary_500</color>
+    <color name="colorPrimaryVariant">@color/primary_700</color>
+    <color name="colorOnPrimary">@color/white</color>
+
+    <!-- Surface and background color -->
+    <color name="colorSurface">@color/grey_100</color>
+    <color name="colorOnSurface">@color/grey_700</color>
+    <color name="colorOnPrimarySurface">@color/black</color>
+
+    <!-- Secondary colors -->
+    <color name="colorSecondary">@color/secondary_500</color>
+    <color name="colorSecondaryVariant">@color/secondary_700</color>
+    <color name="colorOnSecondary">@color/black</color>
+    <!-- Ripple effect for selectable items -->
 </resources>

@@ -164,7 +164,7 @@ class BookDetailFragment : Fragment() {
         } else {
             binding.btnAddLibrary.text = "Thêm vào thư viện"
             binding.btnAddLibrary.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_add_user_24, 0, 0, 0
+                R.drawable.ic_plus_16, 0, 0, 0
             )
         }
     }

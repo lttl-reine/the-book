@@ -31,7 +31,6 @@ class BookRepository {
                     book?.let {
                         it.bookId = childSnapshot.key ?: ""
                         books.add(it)
-                        Log.d(TAG, "Book added: ${it.title}, ID: ${it.bookId}")
                     }
                 }
                 Log.d(TAG, "Fetched ${books.size} books successfully")
@@ -64,7 +63,6 @@ class BookRepository {
                 val book = snapshot.getValue(Book::class.java)
                 if (book != null) {
                     book.bookId = snapshot.key ?: ""
-                    Log.d(TAG, "Book fetched successfully: ${book.title}, ID: ${book.bookId}")
                     trySend(Resources.Success(book))
                 } else {
                     Log.e(TAG, "Book not found for ID: $bookId")
