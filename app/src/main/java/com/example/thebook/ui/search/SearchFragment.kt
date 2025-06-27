@@ -12,9 +12,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.thebook.R
 import com.example.thebook.databinding.FragmentSearchBinding
 import com.example.thebook.ui.home.BookAdapter
 import com.example.thebook.utils.Resources
+import com.example.thebook.utils.setupSystemUI
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.launch
 
@@ -40,6 +42,11 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupSystemUI(
+            statusBarColorResId = R.color.white,
+            isAppearanceLightStatusBars = true,
+            applyInsetsToRoot = true
+        )
         setupRecyclerViews()
         setupSearchView()
         setupGenreChips() // This will now observe categories
@@ -122,14 +129,13 @@ class SearchFragment : Fragment() {
     private fun setupRecyclerViews() {
         // Books RecyclerView
         booksAdapter = BookAdapter { book ->
-            // Navigate to book detail
-            // findNavController().navigate(
-            //     SearchFragmentDirections.actionSearchToBookDetail(book.bookId)
-            // )
+             //Navigate to book detail
+             findNavController().navigate(
+                 SearchFragmentDirections.actionSearchFragmentToBookDetailFragment(book.bookId)
+             )
         }
 
         binding.recyclerViewBooks.apply {
-            layoutManager = GridLayoutManager(requireContext(), 2)
             adapter = booksAdapter
         }
 

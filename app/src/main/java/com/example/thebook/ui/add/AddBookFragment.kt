@@ -36,7 +36,7 @@ class AddBookFragment : Fragment() {
     private var _binding: FragmentAddBookBinding? = null
     private val binding get() = _binding!!
 
-    private val selectedGenres = mutableListOf<String>()
+    private val selectedGenres = mutableSetOf<String>()
 
     private val args: AddBookFragmentArgs by navArgs()
     private var bookIdToEdit: String? = null
@@ -118,7 +118,7 @@ class AddBookFragment : Fragment() {
 
         // Handle save button
         binding.btnSaveBook.setOnClickListener {
-            saveBook()
+            handleAddBookClick()
         }
 
         // Update number characters of description
@@ -185,6 +185,7 @@ class AddBookFragment : Fragment() {
                     }
                 }
 
+                // Load book info if use update function
                 launch {
                     addBookViewModel.bookToEdit.collectLatest { resource ->
                         when (resource) {
@@ -203,21 +204,30 @@ class AddBookFragment : Fragment() {
                                     binding.etImageUrl.setText(it.coverImageUrl)
                                     binding.etEpubUrl.setText(it.bookFileUrl)
 
-                                    // Chọn ngôn ngữ
-//                                    val languageAdapter = binding.spinnerLanguage.adapter as? ArrayAdapter<Language>
-//                                    languageAdapter?.let { adapter ->
-//                                        val languagePosition = (0 until adapter.count).firstOrNull {
-//                                            adapter.getItem(it)?.name == book.language
-//                                        } ?: 0
-//                                        binding.spinnerLanguage.setSelection(languagePosition)
-//                                    }
+                                    // Chọn ngôn ngữ - Fixed version
+                                    val languages = binding.spinnerLanguage.tag as? List<Language>
+                                    languages?.let { languageList ->
+                                        val languagePosition = languageList.indexOfFirst { language ->
+                                            language.name == it.language
+                                        }
+                                        if (languagePosition != -1) {
+                                            binding.spinnerLanguage.setSelection(languagePosition)
+                                        }
+                                    }
 
                                     // Chọn thể loại (genres)
                                     binding.chipGroupGenre.clearCheck()
                                     selectedGenres.clear()
                                     it.genre.forEach { genreId ->
-                                        binding.chipGroupGenre.findViewWithTag<Chip>(genreId)?.isChecked = true
-                                        selectedGenres.add(genreId)
+                                        // Find chip by tag (category.id) and check it
+                                        for (i in 0 until binding.chipGroupGenre.childCount) {
+                                            val chip = binding.chipGroupGenre.getChildAt(i) as? Chip
+                                            if (chip?.tag == genreId) {
+                                                chip.isChecked = true
+                                                selectedGenres.add(genreId)
+                                                break
+                                            }
+                                        }
                                     }
 
                                     // Load ảnh bìa
@@ -244,48 +254,68 @@ class AddBookFragment : Fragment() {
         }
     }
 
-    private fun saveBook() {
-        val title = binding.etTitle.text.toString()
-        val author = binding.etAuthor.text.toString()
-        val description = binding.etDescription.text.toString()
+    private fun handleAddBookClick() {
+        val title = binding.etTitle.text.toString().trim()
+        val author = binding.etAuthor.text.toString().trim()
+        val description = binding.etDescription.text.toString().trim()
         val publishedYear = binding.etPublishedYear.text.toString().toIntOrNull() ?: 0
         val pageCount = binding.etPageCount.text.toString().toIntOrNull() ?: 0
-        val coverImageUrl = binding.etImageUrl.text.toString().trim()
-        val bookFileUrl = binding.etEpubUrl.text.toString().trim()
+        val imageUrl = binding.etImageUrl.text.toString().trim()
+        val epubUrl = binding.etEpubUrl.text.toString().trim()
+        val language = (binding.spinnerLanguage.selectedItem as? Language)?.name ?: "Vietnamese"
 
-        val selectedLanguageIndex = binding.spinnerLanguage.selectedItemPosition
-        val languages = binding.spinnerLanguage.tag as? List<Language>
-        val selectedLanguageName = if (languages != null && selectedLanguageIndex != -1) {
-            languages[selectedLanguageIndex].name
-        } else {
-            ""
-        }
 
-        val genresToSave = selectedGenres.toList()
-
-        if (title.isBlank() || author.isBlank()) {
-            Toast.makeText(requireContext(), "Title and Author cannot be empty.", Toast.LENGTH_SHORT).show()
+        if (title.isEmpty() || author.isEmpty()) {
+            Toast.makeText(context, "Tiêu đề và Tác giả không được để trống", Toast.LENGTH_SHORT).show()
             return
         }
 
-        binding.progressBar.visibility = View.VISIBLE
-        binding.btnSaveBook.isEnabled = false
-
-        val newBook = Book(
+        // Tạo một đối tượng Book tạm thời với dữ liệu từ form
+        // bookId sẽ được gán lại nếu là chế độ chỉnh sửa
+        val newOrUpdatedBook = Book(
+            bookId = bookIdToEdit ?: "", // Nếu là chỉnh sửa, dùng bookId cũ, nếu không thì rỗng (sẽ được Firebase tạo)
             title = title,
             author = author,
-            genre = genresToSave,
             description = description,
+            coverImageUrl = imageUrl,
+            bookFileUrl = epubUrl,
             publishedYear = publishedYear,
             pageCount = pageCount,
-            language = selectedLanguageName,
-            coverImageUrl = coverImageUrl,
-            bookFileUrl = bookFileUrl,
-            isFree = true,
-            price = 0.0
+            language = language,
+            genre = selectedGenres.toList(), // Chuyển từ Set sang List (nếu đã sửa selectedGenres)
+            averageRating = 0.0f, // Sẽ được cập nhật riêng
+            totalRatings = 0,    // Sẽ được cập nhật riêng
+            uploadDate = System.currentTimeMillis() // Giữ nguyên uploadDate nếu là chỉnh sửa, hoặc dùng ngày hiện tại
         )
 
-        addBookViewModel.saveBook(newBook)
+        // KIỂM TRA ĐÂY LÀ THÊM MỚI HAY CHỈNH SỬA
+        if (bookIdToEdit != null) {
+            val currentBookResource = addBookViewModel.bookToEdit.value
+            if (currentBookResource is Resources.Success) { // Kiểm tra nếu là trạng thái Success
+                currentBookResource.data?.let { originalBook -> // Giờ đây data đã có sẵn
+                    val bookForUpdate = newOrUpdatedBook.copy(
+                        bookId = originalBook.bookId,
+                        averageRating = originalBook.averageRating,
+                        totalRatings = originalBook.totalRatings,
+                        uploadDate = originalBook.uploadDate,
+                        uploaderId = originalBook.uploaderId,
+                        free = originalBook.free,
+                        price = originalBook.price
+                    )
+                    addBookViewModel.updateBook(bookForUpdate)
+
+                } ?: Toast.makeText(context, "Thông tin sách gốc trống. Không thể cập nhật.", Toast.LENGTH_SHORT).show()
+            } else if (currentBookResource is Resources.Loading) {
+                Log.d(TAG, "handleAddBookClick: Loading")
+            } else if (currentBookResource is Resources.Error) {
+                Log.d(TAG, "handleAddBookClick: error ${currentBookResource.exception?.message}")
+            }
+
+            clearForm()
+        } else {
+            // Chế độ thêm mới
+            addBookViewModel.saveBook(newOrUpdatedBook) // Gọi hàm thêm sách mới
+        }
     }
 
     private fun clearForm() {
@@ -311,7 +341,7 @@ class AddBookFragment : Fragment() {
             chip.text = category.displayName
             chip.isCheckable = true
             chip.isClickable = true
-            chip.tag = category.name
+            chip.tag = category.id
 
 
             chip.setOnCheckedChangeListener { _, isChecked ->

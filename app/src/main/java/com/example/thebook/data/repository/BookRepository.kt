@@ -174,11 +174,11 @@ class BookRepository {
     }
 
     // Function to update an existing book
-    fun updateBook(bookId: String, updatedBook: Book): Flow<Resources<Void>> = callbackFlow {
+    fun updateBook(bookId: String, updatedBook: Book): Flow<Resources<Unit>> = callbackFlow {
         trySend(Resources.Loading())
         booksRef.child(bookId).setValue(updatedBook)
             .addOnSuccessListener {
-                trySend(Resources.Success(bookId as Void))
+                trySend(Resources.Success(Unit))
             }
             .addOnFailureListener { e ->
                 trySend(Resources.Error(e))
@@ -219,6 +219,51 @@ class BookRepository {
             Log.d(TAG, "Closing update pageCount operation for book ID: $bookId")
         }
     }
+
+    fun checkForDuplicates(title: String, epubUrl: String): Flow<Resources<Boolean>> = callbackFlow {
+        Log.d(TAG, "Checking for duplicates: title='$title', epubUrl='$epubUrl'")
+        trySend(Resources.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var isDuplicate = false
+                val titleLowerCase = title.lowercase().trim()
+                val epubUrlTrimmed = epubUrl.trim()
+
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        val bookTitleLowerCase = it.title.lowercase().trim()
+                        val bookEpubUrlTrimmed = it.bookFileUrl.trim()
+
+                        // Check for exact title match or exact epub URL match
+                        if (bookTitleLowerCase == titleLowerCase || bookEpubUrlTrimmed == epubUrlTrimmed) {
+                            Log.d(TAG, "Duplicate found - Title match: ${bookTitleLowerCase == titleLowerCase}, " +
+                                    "EPUB URL match: ${bookEpubUrlTrimmed == epubUrlTrimmed}")
+                            isDuplicate = true
+                            return@let // Break out of this iteration
+                        }
+                    }
+                }
+
+                Log.d(TAG, "Duplicate check result: $isDuplicate")
+                trySend(Resources.Success(isDuplicate))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Duplicate check cancelled: ${error.message}", error.toException())
+                trySend(Resources.Error(error.toException()))
+            }
+        }
+
+        booksRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing duplicate check listener")
+        }
+    }
+
+
     // Add a new review for a book
     fun addReview(review: Review, callback: (Boolean, String?) -> Unit) {
         val newReviewRef = reviewsRef.push()
