@@ -27,7 +27,7 @@ class ReadingProgressRepository {
     suspend fun saveReadingProgress(
         bookId: String,
         lastReadPage: Int,
-        isFinished: Boolean = false
+        isCompleted: Boolean = false
     ): Resources<Unit> {
         return try {
             val currentUser = auth.currentUser
@@ -44,11 +44,11 @@ class ReadingProgressRepository {
                 bookId = bookId,
                 lastReadPage = lastReadPage,
                 lastReadAt = System.currentTimeMillis(),
-                isFinished = isFinished
+                isCompleted = isCompleted
             )
 
             readingProgressRef.child(progressId).setValue(progress).await()
-            Log.d(TAG, "Reading progress saved: bookId=$bookId, page=$lastReadPage, finished=$isFinished")
+            Log.d(TAG, "Reading progress saved: bookId=$bookId, page=$lastReadPage, finished=$isCompleted")
             Resources.Success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving reading progress: ${e.message}", e)
@@ -165,7 +165,7 @@ class ReadingProgressRepository {
                 for (childSnapshot in snapshot.children) {
                     val progress = childSnapshot.getValue(ReadingProgress::class.java)
                     progress?.let {
-                        if (it.userId == userId && !it.isFinished && it.lastReadPage > 0) {
+                        if (it.userId == userId && !it.isCompleted && it.lastReadPage > 0) {
                             currentlyReading.add(it)
                         }
                     }
@@ -208,19 +208,19 @@ class ReadingProgressRepository {
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val finishedBooks = mutableListOf<ReadingProgress>()
+                val completedBooks = mutableListOf<ReadingProgress>()
 
                 for (childSnapshot in snapshot.children) {
                     val progress = childSnapshot.getValue(ReadingProgress::class.java)
                     progress?.let {
-                        if (it.userId == userId && it.isFinished) {
-                            finishedBooks.add(it)
+                        if (it.userId == userId && it.isCompleted) {
+                            completedBooks.add(it)
                         }
                     }
                 }
 
                 // Sort by completion time (most recent first)
-                val sortedProgress = finishedBooks.sortedByDescending { it.lastReadAt }
+                val sortedProgress = completedBooks.sortedByDescending { it.lastReadAt }
 
                 Log.d(TAG, "Finished books fetched: ${sortedProgress.size} items")
                 trySend(Resources.Success(sortedProgress))
@@ -298,7 +298,7 @@ class ReadingProgressRepository {
                                 totalBooksStarted++
                                 totalPagesRead += it.lastReadPage
                             }
-                            if (it.isFinished) {
+                            if (it.isCompleted) {
                                 totalBooksRead++
                             }
                         }

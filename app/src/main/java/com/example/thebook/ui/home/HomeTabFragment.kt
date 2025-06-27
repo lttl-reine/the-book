@@ -72,34 +72,50 @@ class HomeTabFragment : Fragment() {
             findNavController().navigate(R.id.action_global_to_searchFragment)
         }
 
+        // "Xem tất cả" buttons - truyền category/filter parameters
         binding.tvSeeAllNewest.setOnClickListener {
-            // Navigate to newest books screen
-            // findNavController().navigate(R.id.action_to_newestBooksFragment)
+            navigateToSearchWithFilter("newest")
         }
 
         binding.tvSeeAllPopular.setOnClickListener {
-            // Navigate to popular books screen
-            // findNavController().navigate(R.id.action_to_popularBooksFragment)
+            navigateToSearchWithFilter("popular")
         }
 
         binding.tvSeeAllFiction.setOnClickListener {
-            // Navigate to fiction books screen
-            // findNavController().navigate(R.id.action_to_fictionBooksFragment)
+            navigateToSearchWithFilter("fiction")
         }
 
         binding.tvSeeAllScience.setOnClickListener {
-            // Navigate to science books screen
-            // findNavController().navigate(R.id.action_to_scienceBooksFragment)
+            navigateToSearchWithFilter("science")
         }
 
         binding.tvSeeAllHistory.setOnClickListener {
-            // Navigate to history books screen
-            // findNavController().navigate(R.id.action_to_historyBooksFragment)
+            navigateToSearchWithFilter("history")
         }
 
         binding.tvSeeAllBooks.setOnClickListener {
-            // Navigate to all books screen
-            // findNavController().navigate(R.id.action_to_allBooksFragment)
+            navigateToSearchWithFilter("all")
+        }
+    }
+
+    // Thêm method mới để navigate với parameters
+    private fun navigateToSearchWithFilter(category: String) {
+        val bundle = Bundle().apply {
+            putString("filter_category", category)
+            putString("search_title", getSearchTitle(category))
+        }
+        findNavController().navigate(R.id.action_homeTabFragment_to_searchFragment, bundle)
+    }
+
+    private fun getSearchTitle(category: String): String {
+        return when (category) {
+            "newest" -> "Sách mới nhất"
+            "popular" -> "Sách phổ biến"
+            "fiction" -> "Tiểu thuyết"
+            "science" -> "Khoa học"
+            "history" -> "Lịch sử"
+            "all" -> "Tất cả sách"
+            else -> "Tìm kiếm"
         }
     }
 
@@ -361,7 +377,9 @@ class HomeTabFragment : Fragment() {
             is Resources.Success -> {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
-                    newestBooksAdapter.submitList(books)
+                    // Giới hạn chỉ hiển thị 10 sách đầu tiên
+                    val limitedBooks = books.take(10)
+                    newestBooksAdapter.submitList(limitedBooks)
                 }
             }
             is Resources.Error -> {
@@ -378,7 +396,9 @@ class HomeTabFragment : Fragment() {
             is Resources.Success -> {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
-                    popularBooksAdapter.submitList(books)
+                    // Giới hạn chỉ hiển thị 10 sách đầu tiên
+                    val limitedBooks = books.take(10)
+                    popularBooksAdapter.submitList(limitedBooks)
                 }
             }
             is Resources.Error -> {
@@ -396,7 +416,9 @@ class HomeTabFragment : Fragment() {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
                     binding.layoutFictionSection.visibility = View.VISIBLE
-                    fictionBooksAdapter.submitList(books)
+                    // Giới hạn chỉ hiển thị 10 sách đầu tiên
+                    val limitedBooks = books.take(10)
+                    fictionBooksAdapter.submitList(limitedBooks)
                 } else {
                     binding.layoutFictionSection.visibility = View.GONE
                 }
@@ -408,6 +430,7 @@ class HomeTabFragment : Fragment() {
         }
     }
 
+    // Tương tự cho Science, History và All Books
     private fun handleScienceBooks(resource: Resources<List<Book>>) {
         when (resource) {
             is Resources.Loading -> {
@@ -417,7 +440,8 @@ class HomeTabFragment : Fragment() {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
                     binding.layoutScienceSection.visibility = View.VISIBLE
-                    scienceBooksAdapter.submitList(books)
+                    val limitedBooks = books.take(10)
+                    scienceBooksAdapter.submitList(limitedBooks)
                 } else {
                     binding.layoutScienceSection.visibility = View.GONE
                 }
@@ -438,7 +462,8 @@ class HomeTabFragment : Fragment() {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
                     binding.layoutHistorySection.visibility = View.VISIBLE
-                    historyBooksAdapter.submitList(books)
+                    val limitedBooks = books.take(10)
+                    historyBooksAdapter.submitList(limitedBooks)
                 } else {
                     binding.layoutHistorySection.visibility = View.GONE
                 }
@@ -458,7 +483,8 @@ class HomeTabFragment : Fragment() {
             is Resources.Success -> {
                 val books = resource.data
                 if (!books.isNullOrEmpty()) {
-                    allBooksAdapter.submitList(books)
+                    val limitedBooks = books.take(10)
+                    allBooksAdapter.submitList(limitedBooks)
                 }
             }
             is Resources.Error -> {

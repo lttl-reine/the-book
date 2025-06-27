@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+// Thêm vào SearchViewModel.kt
+
 class SearchViewModel : ViewModel() {
 
     private val bookRepository = BookRepository()
@@ -32,6 +34,30 @@ class SearchViewModel : ViewModel() {
         }
     }
 
+    // Thêm method mới để search với filter đặc biệt (newest, popular)
+    fun searchBooksWithFilter(query: String, filter: String) {
+        currentQuery = query
+        viewModelScope.launch {
+            when (filter) {
+                "newest" -> {
+                    // Gọi method lấy sách mới nhất từ repository
+                    bookRepository.getNewestBooks().collect { resource ->
+                        _searchResults.value = resource
+                    }
+                }
+                "popular" -> {
+                    // Gọi method lấy sách phổ biến từ repository
+                    bookRepository.getPopularBooks().collect { resource ->
+                        _searchResults.value = resource
+                    }
+                }
+                else -> {
+                    searchBooks(query)
+                }
+            }
+        }
+    }
+
     fun filterByGenre(genre: String) {
         currentGenre = genre
         viewModelScope.launch {
@@ -44,6 +70,15 @@ class SearchViewModel : ViewModel() {
     fun clearGenreFilter() {
         currentGenre = null
         searchBooks(currentQuery)
+    }
+
+    // Method để load tất cả sách (không giới hạn)
+    fun loadAllBooks() {
+        viewModelScope.launch {
+            bookRepository.getBooks().collect { resource ->
+                _searchResults.value = resource
+            }
+        }
     }
 
     fun getSuggestions(query: String) {

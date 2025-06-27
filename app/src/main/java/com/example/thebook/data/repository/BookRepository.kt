@@ -33,53 +33,114 @@ class BookRepository {
                         books.add(it)
                     }
                 }
-                Log.d(TAG, "Fetched ${books.size} books successfully")
                 trySend(Resources.Success(books))
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Failed to fetch books: ${error.message}", error.toException())
                 trySend(Resources.Error(error.toException()))
             }
         }
 
-        // Start to listen data
         booksRef.addValueEventListener(valueEventListener)
 
-        // Callback to cancel listen when flow close
         awaitClose {
             Log.d(TAG, "Closing books listener")
             booksRef.removeEventListener(valueEventListener)
         }
     }
 
-    fun getBookById(bookId: String) : Flow<Resources<Book>> = callbackFlow {
-        Log.d(TAG, "Starting to fetch book with ID: $bookId")
+    fun getNewestBooks(limit: Int = 10): Flow<Resources<List<Book>>> = callbackFlow {
         trySend(Resources.Loading())
 
-        val bookRef = database.getReference("Books").child(bookId)
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val books = mutableListOf<Book>()
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+                        books.add(it)
+                    }
+                }
+                // Sort by uploadDate descending and take the specified limit
+                val newestBooks = books.sortedByDescending { it.uploadDate }.take(limit)
+                trySend(Resources.Success(newestBooks))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(Resources.Error(error.toException()))
+            }
+        }
+
+        booksRef.orderByChild("uploadDate").limitToLast(limit).addValueEventListener(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing newest books listener")
+            booksRef.removeEventListener(valueEventListener)
+        }
+    }
+
+    fun getPopularBooks(limit: Int = 10): Flow<Resources<List<Book>>> = callbackFlow {
+        trySend(Resources.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val books = mutableListOf<Book>()
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+                        books.add(it)
+                    }
+                }
+                // Filter books with ratings, sort by averageRating descending, then totalRatings descending
+                val popularBooks = books
+                    .filter { it.averageRating > 0.0 }
+                    .sortedWith(compareByDescending<Book> { it.averageRating }
+                        .thenByDescending { it.totalRatings })
+                    .take(limit)
+                trySend(Resources.Success(popularBooks))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(Resources.Error(error.toException()))
+            }
+        }
+
+        booksRef.addValueEventListener(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing popular books listener")
+            booksRef.removeEventListener(valueEventListener)
+        }
+    }
+
+
+
+    fun getBookById(bookId: String): Flow<Resources<Book>> = callbackFlow {
+        trySend(Resources.Loading())
+
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val book = snapshot.getValue(Book::class.java)
                 if (book != null) {
-                    book.bookId = snapshot.key ?: ""
+                    book.bookId = snapshot.key ?: "" // Ensure bookId is set
                     trySend(Resources.Success(book))
                 } else {
-                    Log.e(TAG, "Book not found for ID: $bookId")
-                    trySend(Resources.Error(Exception("Book not found for ID: $bookId")))
+                    trySend(Resources.Error(Exception("Book not found")))
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Failed to fetch book with ID $bookId: ${error.message}", error.toException())
                 trySend(Resources.Error(error.toException()))
             }
         }
-        // Just listen one time
-        bookRef.addListenerForSingleValueEvent(valueEventListener)
+
+        booksRef.child(bookId).addValueEventListener(valueEventListener)
 
         awaitClose {
-            Log.d(TAG, "Closing book listener for ID: $bookId")
+            Log.d(TAG, "Closing book by ID listener for $bookId")
+            booksRef.child(bookId).removeEventListener(valueEventListener)
         }
     }
 
@@ -112,6 +173,32 @@ class BookRepository {
         }
     }
 
+    // Function to update an existing book
+    fun updateBook(bookId: String, updatedBook: Book): Flow<Resources<Void>> = callbackFlow {
+        trySend(Resources.Loading())
+        booksRef.child(bookId).setValue(updatedBook)
+            .addOnSuccessListener {
+                trySend(Resources.Success(bookId as Void))
+            }
+            .addOnFailureListener { e ->
+                trySend(Resources.Error(e))
+            }
+        awaitClose { /* No specific cleanup needed */ }
+    }
+
+    // Function to delete a book
+    fun deleteBook(bookId: String): Flow<Resources<Void>> = callbackFlow {
+        trySend(Resources.Loading())
+        booksRef.child(bookId).removeValue()
+            .addOnSuccessListener {
+                trySend(Resources.Success(bookId as Void))
+            }
+            .addOnFailureListener { e ->
+                trySend(Resources.Error(e))
+            }
+        awaitClose { /* No specific cleanup needed */ }
+    }
+
     fun updateBookPageCount(bookId: String, pageCount: Int): Flow<com.example.thebook.utils.Resources<Unit>> = callbackFlow {
         Log.d(TAG, "Updating pageCount for book ID: $bookId to $pageCount")
         trySend(com.example.thebook.utils.Resources.Loading())
@@ -132,9 +219,7 @@ class BookRepository {
             Log.d(TAG, "Closing update pageCount operation for book ID: $bookId")
         }
     }
-    /**
-     * Add a new review for a book
-     */
+    // Add a new review for a book
     fun addReview(review: Review, callback: (Boolean, String?) -> Unit) {
         val newReviewRef = reviewsRef.push()
         val reviewWithId = review.copy(reviewId = newReviewRef.key ?: UUID.randomUUID().toString(),
@@ -161,21 +246,18 @@ class BookRepository {
         reviewsRef
             .orderByChild("bookId")
             .equalTo(bookId)
-            .limitToLast(limit) // Realtime Database uses limitToLast for descending order
+            .limitToLast(limit)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val reviews = mutableListOf<Review>()
                     for (childSnapshot in snapshot.children) {
                         val review = childSnapshot.getValue(Review::class.java)
                         review?.let {
-                            it.reviewId = childSnapshot.key ?: "" // Set the reviewId from the key
+                            it.reviewId = childSnapshot.key ?: ""
                             reviews.add(it)
                         }
                     }
-                    // Since limitToLast gets the "last" (most recent if ordered by timestamp), reverse if needed
-                    // to match DESCENDING order visually, but timestamp sorting isn't direct in queries.
-                    // You might need to sort in-memory if strict timestamp DESC is required.
-                    callback(reviews.reversed(), null) // Reverse to get most recent first if pushed by timestamp
+                    callback(reviews.reversed(), null)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -376,17 +458,13 @@ class BookRepository {
         }
     }
 
-    /**
-     * Get books by specific genre
-     */
+    // Get books by specific genre
     fun getBooksByGenre(genre: String): Flow<Resources<List<Book>>> = callbackFlow {
-        Log.d(TAG, "Fetching books by genre: $genre")
         trySend(Resources.Loading())
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val books = mutableListOf<Book>()
-
                 for (childSnapshot in snapshot.children) {
                     val book = childSnapshot.getValue(Book::class.java)
                     book?.let {
@@ -398,33 +476,23 @@ class BookRepository {
                         }
                     }
                 }
-
-                // Sort by rating and upload date
-                val sortedBooks = books.sortedWith(
-                    compareByDescending<Book> { it.averageRating }
-                        .thenByDescending { it.uploadDate }
-                )
-
-                Log.d(TAG, "Found ${sortedBooks.size} books for genre: $genre")
-                trySend(Resources.Success(sortedBooks))
+                trySend(Resources.Success(books))
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Failed to fetch books by genre: ${error.message}", error.toException())
                 trySend(Resources.Error(error.toException()))
             }
         }
 
-        booksRef.addListenerForSingleValueEvent(valueEventListener)
+        booksRef.addValueEventListener(valueEventListener)
 
         awaitClose {
-            Log.d(TAG, "Closing genre search listener")
+            Log.d(TAG, "Closing books by genre listener for $genre")
+            booksRef.removeEventListener(valueEventListener)
         }
     }
 
-    /**
-     * Get search suggestions based on partial query
-     */
+    // Get search suggestions based on partial query
     fun getSearchSuggestions(query: String, limit: Int = 5): Flow<Resources<List<String>>> = callbackFlow {
         if (query.length < 2) {
             trySend(Resources.Success(emptyList()))

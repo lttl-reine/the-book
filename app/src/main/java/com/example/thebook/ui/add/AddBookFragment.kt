@@ -15,6 +15,8 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.thebook.R
 import com.example.thebook.data.model.Book
@@ -24,6 +26,7 @@ import com.example.thebook.data.repository.AuthRepository
 import com.example.thebook.data.repository.BookRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentAddBookBinding
+import com.example.thebook.utils.Resources
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -35,12 +38,20 @@ class AddBookFragment : Fragment() {
 
     private val selectedGenres = mutableListOf<String>()
 
+    private val args: AddBookFragmentArgs by navArgs()
+    private var bookIdToEdit: String? = null
+
     private val addBookViewModel : AddBookViewModel by lazy {
         val sharedDataRepository = SharedDataRepository()
         val bookRepository = BookRepository()
         val authRepository = AuthRepository()
         AddBookViewModelFactory(sharedDataRepository, bookRepository, authRepository).create(
             AddBookViewModel::class.java)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        bookIdToEdit = args.bookIdToEdit
     }
 
     override fun onCreateView(
@@ -57,6 +68,18 @@ class AddBookFragment : Fragment() {
         setUpObservers()
         setupListeners()
         setupImagePreview()
+
+        if (bookIdToEdit != null) {
+            // Nếu có bookId, tức là đang ở chế độ chỉnh sửa
+            // Gọi ViewModel để lấy thông tin sách và điền vào form
+            Log.d(TAG, "Editing existing book: $bookIdToEdit")
+            // Có thể đổi text của nút "Thêm sách" thành "Cập nhật sách"
+            binding.btnSaveBook.text = "Cập nhật sách"
+            addBookViewModel.loadBookToEdit(bookIdToEdit!!)
+        } else {
+            Log.d(TAG, "Adding new book")
+            binding.btnSaveBook.text = "Thêm sách"
+        }
 
     }
 
@@ -161,6 +184,62 @@ class AddBookFragment : Fragment() {
                         }
                     }
                 }
+
+                launch {
+                    addBookViewModel.bookToEdit.collectLatest { resource ->
+                        when (resource) {
+                            is Resources.Loading -> {
+                                // Hiển thị loading state
+                            }
+                            is Resources.Success -> {
+                                val book = resource.data
+                                book?.let { it ->
+                                    // Điền dữ liệu sách vào các trường nhập liệu
+                                    binding.etTitle.setText(it.title)
+                                    binding.etAuthor.setText(it.author)
+                                    binding.etDescription.setText(it.description)
+                                    binding.etPublishedYear.setText(it.publishedYear.toString())
+                                    binding.etPageCount.setText(it.pageCount.toString())
+                                    binding.etImageUrl.setText(it.coverImageUrl)
+                                    binding.etEpubUrl.setText(it.bookFileUrl)
+
+                                    // Chọn ngôn ngữ
+//                                    val languageAdapter = binding.spinnerLanguage.adapter as? ArrayAdapter<Language>
+//                                    languageAdapter?.let { adapter ->
+//                                        val languagePosition = (0 until adapter.count).firstOrNull {
+//                                            adapter.getItem(it)?.name == book.language
+//                                        } ?: 0
+//                                        binding.spinnerLanguage.setSelection(languagePosition)
+//                                    }
+
+                                    // Chọn thể loại (genres)
+                                    binding.chipGroupGenre.clearCheck()
+                                    selectedGenres.clear()
+                                    it.genre.forEach { genreId ->
+                                        binding.chipGroupGenre.findViewWithTag<Chip>(genreId)?.isChecked = true
+                                        selectedGenres.add(genreId)
+                                    }
+
+                                    // Load ảnh bìa
+                                    if (it.coverImageUrl.isNotEmpty()) {
+                                        Glide.with(requireContext())
+                                            .load(it.coverImageUrl)
+                                            .placeholder(R.drawable.book_cover_placeholder)
+                                            .error(R.drawable.book_cover_placeholder)
+                                            .into(binding.ivCoverPreview)
+                                    } else {
+                                        binding.ivCoverPreview.setImageResource(R.drawable.book_cover_placeholder)
+                                    }
+                                }
+                            }
+                            is Resources.Error -> {
+                                Toast.makeText(context, "Lỗi khi tải sách: ${resource.exception?.message}", Toast.LENGTH_LONG).show()
+                                findNavController().popBackStack() // Quay lại nếu có lỗi
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }

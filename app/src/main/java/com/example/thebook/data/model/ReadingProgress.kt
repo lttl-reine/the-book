@@ -5,5 +5,5 @@ data class ReadingProgress(
     val bookId: String = "",
     val lastReadPage: Int = 0,
     val lastReadAt: Long = 0L,
-    val isFinished: Boolean = false
+    val isCompleted: Boolean = false
 )

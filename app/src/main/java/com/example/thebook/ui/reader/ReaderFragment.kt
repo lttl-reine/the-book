@@ -380,7 +380,7 @@ class ReaderFragment : Fragment() {
                 val result = readingProgressRepository.saveReadingProgress(
                     bookId = bookId,
                     lastReadPage = currentChapterIndex,
-                    isFinished = false
+                    isCompleted = false
                 )
 
                 when (result) {

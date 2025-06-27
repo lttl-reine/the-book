@@ -77,16 +77,30 @@
         <action
             android:id="@+id/action_bookDetailFragment_to_readerFragment"
             app:destination="@id/readerFragment" />
+        <action
+            android:id="@+id/action_bookDetailFragment_to_addBookFragment"
+            app:destination="@id/addBookFragment" />
+            <argument
+                android:name="bookIdToEdit"
+                app:argType="string"
+                android:defaultValue="@null"
+                app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/addBookFragment"
         android:name="com.example.thebook.ui.add.AddBookFragment"
         android:label="AddBookFragment"
         tools:layout="@layout/fragment_add_book">
+            <argument
+                android:name="bookIdToEdit"
+                app:argType="string"
+                android:defaultValue="@null"
+                app:nullable="true" />
         <action
             android:id="@+id/action_addBookFragment_to_homeTabFragment"
             app:destination="@id/homeTabFragment"
             app:popUpToInclusive="true"/>
+
     </fragment>
     <fragment
         android:id="@+id/readerFragment"

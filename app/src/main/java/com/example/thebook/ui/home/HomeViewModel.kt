@@ -22,7 +22,7 @@ class HomeViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // All books
+    // All books (for filter/sort)
     private val _books = MutableStateFlow<Resources<List<Book>>>(Resources.Loading())
     val books: StateFlow<Resources<List<Book>>> = _books.asStateFlow()
 
@@ -38,11 +38,11 @@ class HomeViewModel : ViewModel() {
     private val _finishedBooks = MutableStateFlow<Resources<List<Book>>>(Resources.Loading())
     val finishedBooks: StateFlow<Resources<List<Book>>> = _finishedBooks.asStateFlow()
 
-    // Newest books (limited to 10)
+    // Newest books
     private val _newestBooks = MutableStateFlow<Resources<List<Book>>>(Resources.Loading())
     val newestBooks: StateFlow<Resources<List<Book>>> = _newestBooks.asStateFlow()
 
-    // Popular books (by rating, limited to 10)
+    // Popular books
     private val _popularBooks = MutableStateFlow<Resources<List<Book>>>(Resources.Loading())
     val popularBooks: StateFlow<Resources<List<Book>>> = _popularBooks.asStateFlow()
 
@@ -65,52 +65,30 @@ class HomeViewModel : ViewModel() {
     val selectedSort: StateFlow<String> = _selectedSort.asStateFlow()
 
     init {
-        fetchBooks()
+        // Khởi tạo các lần tải dữ liệu
+        fetchBooks() // Vẫn cần fetch tất cả sách cho bộ lọc
         loadRecentlyReadBooks()
         loadCurrentlyReadingBooks()
         loadFinishedBooks()
-        loadGenreBooks() // Gọi hàm load sách theo thể loại
+        loadNewestBooks() // Gọi hàm mới từ Repository
+        loadPopularBooks() // Gọi hàm mới từ Repository
+        loadGenreBooks()
     }
 
     private fun fetchBooks() {
-        // Cập nhật trạng thái loading trước khi bắt đầu fetch
         _isLoading.value = true
         bookRepository.getBooks().onEach { result ->
             _books.value = result
-            // Khi có kết quả, cập nhật trạng thái loading và xử lý các danh mục sách
-            if (result is Resources.Success) {
-                _isLoading.value = false // Tắt loading khi dữ liệu đã sẵn sàng
-                processNewestBooks(result.data ?: emptyList())
-                processPopularBooks(result.data ?: emptyList())
-            } else if (result is Resources.Error) {
-                _isLoading.value = false // Tắt loading nếu có lỗi
-                // Có thể xử lý lỗi cụ thể ở đây
-            }
+            if (result !is Resources.Loading) _isLoading.value = false
         }.launchIn(viewModelScope)
-    }
-
-    private fun processNewestBooks(allBooks: List<Book>) {
-        val newestBooks = allBooks
-            .sortedByDescending { it.uploadDate }
-            .take(10) // Lấy 10 sách mới nhất
-        _newestBooks.value = Resources.Success(newestBooks)
-    }
-
-    private fun processPopularBooks(allBooks: List<Book>) {
-        val popularBooks = allBooks
-            .filter { it.averageRating > 0.0 } // Chỉ lấy sách có đánh giá
-            .sortedWith(compareByDescending<Book> { it.averageRating }
-                .thenByDescending { it.totalRatings }) // Sắp xếp theo điểm trung bình, sau đó là tổng số lượt đánh giá
-            .take(10) // Lấy 10 sách phổ biến nhất
-        _popularBooks.value = Resources.Success(popularBooks)
     }
 
     private fun loadRecentlyReadBooks() {
         viewModelScope.launch {
-            _isLoading.value = true // Bật loading
+            _isLoading.value = true
             combine(
                 readingProgressRepository.getReadingHistory(limit = 10),
-                bookRepository.getBooks()
+                bookRepository.getBooks() // Lấy tất cả sách để tìm theo bookId
             ) { readingHistoryResource, allBooksResource ->
                 when {
                     readingHistoryResource is Resources.Success && allBooksResource is Resources.Success -> {
@@ -119,11 +97,11 @@ class HomeViewModel : ViewModel() {
 
                         val recentlyReadBooksList = recentlyReadProgress
                             .filter { it.lastReadPage > 0 }
-                            .take(10) // Giới hạn 10 sách gần đây nhất
+                            .take(10)
                             .mapNotNull { progress ->
                                 allBooks.find { book -> book.bookId == progress.bookId }
                             }
-                            .distinctBy { it.bookId } // Loại bỏ trùng lặp nếu có
+                            .distinctBy { it.bookId }
                         Resources.Success(recentlyReadBooksList)
                     }
                     readingHistoryResource is Resources.Loading || allBooksResource is Resources.Loading -> {
@@ -133,7 +111,7 @@ class HomeViewModel : ViewModel() {
                         Resources.Error(readingHistoryResource.exception ?: Exception("Error loading reading history"))
                     }
                     allBooksResource is Resources.Error -> {
-                        Resources.Error(allBooksResource.exception ?: Exception("Error loading books"))
+                        Resources.Error(allBooksResource.exception ?: Exception("Error loading all books for recently read"))
                     }
                     else -> {
                         Resources.Error(Exception("Unknown error"))
@@ -141,7 +119,7 @@ class HomeViewModel : ViewModel() {
                 }
             }.collect {
                 _recentlyReadBooks.value = it
-                if (it !is Resources.Loading) _isLoading.value = false // Tắt loading khi hoàn tất
+                if (it !is Resources.Loading) _isLoading.value = false
             }
         }
     }
@@ -222,6 +200,24 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    // Modified: Call getNewestBooks from BookRepository
+    private fun loadNewestBooks() {
+        _isLoading.value = true
+        bookRepository.getNewestBooks().onEach { result ->
+            _newestBooks.value = result
+            if (result !is Resources.Loading) _isLoading.value = false
+        }.launchIn(viewModelScope)
+    }
+
+    // Modified: Call getPopularBooks from BookRepository
+    private fun loadPopularBooks() {
+        _isLoading.value = true
+        bookRepository.getPopularBooks().onEach { result ->
+            _popularBooks.value = result
+            if (result !is Resources.Loading) _isLoading.value = false
+        }.launchIn(viewModelScope)
+    }
+
     private fun loadGenreBooks() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -248,15 +244,11 @@ class HomeViewModel : ViewModel() {
     // Function để thay đổi bộ lọc
     fun setSelectedFilter(filter: String) {
         _selectedFilter.value = filter
-        // Có thể gọi lại fetchBooks() hoặc filter danh sách _books hiện có
-        // để cập nhật UI dựa trên bộ lọc mới
     }
 
     // Function để thay đổi cách sắp xếp
     fun setSelectedSort(sort: String) {
         _selectedSort.value = sort
-        // Tương tự, có thể sắp xếp lại danh sách _books hiện có
-        // hoặc gọi lại fetchBooks() với tham số sắp xếp
     }
 
     // Thêm function để refresh data
@@ -265,6 +257,8 @@ class HomeViewModel : ViewModel() {
         loadRecentlyReadBooks()
         loadCurrentlyReadingBooks()
         loadFinishedBooks()
-        loadGenreBooks() // Refresh cả sách theo thể loại
+        loadNewestBooks()
+        loadPopularBooks()
+        loadGenreBooks()
     }
 }

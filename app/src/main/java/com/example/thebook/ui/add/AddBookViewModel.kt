@@ -10,6 +10,7 @@ import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.utils.Resources
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,9 @@ class AddBookViewModel(
     // State of save book process
     private val _saveBookStatus = MutableStateFlow<SaveBookStatus>(SaveBookStatus.Idle)
     val saveBookStatus: StateFlow<SaveBookStatus> = _saveBookStatus
+
+    private val _bookToEdit = MutableStateFlow<Resources<Book>>(Resources.Loading())
+    val bookToEdit: StateFlow<Resources<Book>> = _bookToEdit.asStateFlow()
 
     // Category and language from SharedDataRepository
     val categories = sharedDataRepository.categories
@@ -58,6 +62,23 @@ class AddBookViewModel(
 
     fun resetSaveBookStatus() {
         _saveBookStatus.value = SaveBookStatus.Idle
+    }
+
+    fun loadBookToEdit(bookId: String) {
+        viewModelScope.launch {
+            bookRepository.getBookById(bookId).collectLatest { result ->
+                _bookToEdit.value = result
+            }
+        }
+    }
+
+    fun updateBook(book: Book) {
+        viewModelScope.launch {
+            bookRepository.updateBook(book.bookId, book).collectLatest { result ->
+                // Xử lý kết quả cập nhật (thành công/thất bại)
+                // _updateBookResult.value = result // Hoặc một StateFlow khác để thông báo kết quả
+            }
+        }
     }
 }
 

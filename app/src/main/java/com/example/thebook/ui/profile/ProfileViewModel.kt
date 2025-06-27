@@ -77,7 +77,7 @@ class ProfileViewModel : ViewModel() {
                         // Calculate statistics
                         val totalBooks = libraryItems.size
                         val completedBooks = libraryItems.filter {
-                            it.library.readingStatus == ReadingStatus.FINISHED.name
+                            it.library.readingStatus == ReadingStatus.COMPLETED.name
                         }
 
                         // Calculate total reading time from reading progress
@@ -227,7 +227,7 @@ class ProfileViewModel : ViewModel() {
 
     private fun calculateReadingStreak(libraryItems: List<com.example.thebook.data.model.Library>): Int {
         val completedBooks = libraryItems
-            .filter { it.readingStatus == ReadingStatus.FINISHED.name }
+            .filter { it.readingStatus == ReadingStatus.COMPLETED.name }
             .sortedByDescending { it.lastReadAt ?: 0 }
 
         if (completedBooks.isEmpty()) return 0
@@ -287,7 +287,7 @@ class ProfileViewModel : ViewModel() {
 
         // Fill with actual reading data
         libraryItems.forEach { item ->
-            if (item.library.readingStatus == ReadingStatus.FINISHED.name) {
+            if (item.library.readingStatus == ReadingStatus.COMPLETED.name) {
                 item.library.lastReadAt?.let { timestamp ->
                     calendar.timeInMillis = timestamp
                     val monthKey = "${calendar.get(Calendar.YEAR)}-${calendar.get(Calendar.MONTH)}"

@@ -61,7 +61,7 @@ class LibraryAdapter(
 
                 // Hiển thị tiến độ đọc
                 if (progress != null && ReadingStatus.valueOf(library.readingStatus) == ReadingStatus.READING) {
-                    Log.d(TAG, "Processing progress for book: ${book.title}. Last read page: ${progress.lastReadPage}, Is finished: ${progress.isFinished}")
+                    Log.d(TAG, "Processing progress for book: ${book.title}. Last read page: ${progress.lastReadPage}, Is finished: ${progress.isCompleted}")
 
                     // Kiểm tra book.pageCount để tránh chia cho 0
                     if (book.pageCount > 0) {

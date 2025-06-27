@@ -101,7 +101,7 @@ class LibraryTabFragment : Fragment() {
             }
 
             chipFinished.setOnClickListener {
-                filterLibrary(ReadingStatus.FINISHED)
+                filterLibrary(ReadingStatus.COMPLETED)
                 updateChipSelection(chipFinished.id)
             }
 
@@ -226,7 +226,7 @@ class LibraryTabFragment : Fragment() {
         // Update menu items based on current status
         val status = ReadingStatus.valueOf(library.readingStatus)
         popup.menu.findItem(R.id.action_mark_reading).isVisible = status != ReadingStatus.READING
-        popup.menu.findItem(R.id.action_mark_finished).isVisible = status != ReadingStatus.FINISHED
+        popup.menu.findItem(R.id.action_mark_finished).isVisible = status != ReadingStatus.COMPLETED
         popup.menu.findItem(R.id.action_mark_not_started).isVisible = status != ReadingStatus.NOT_STARTED
 
         val favoriteItem = popup.menu.findItem(R.id.action_toggle_favorite)
@@ -239,7 +239,7 @@ class LibraryTabFragment : Fragment() {
                     true
                 }
                 R.id.action_mark_finished -> {
-                    updateReadingStatus(library, book, ReadingStatus.FINISHED)
+                    updateReadingStatus(library, book, ReadingStatus.COMPLETED)
                     true
                 }
                 R.id.action_mark_not_started -> {
@@ -281,7 +281,7 @@ class LibraryTabFragment : Fragment() {
                 binding.chipAll.isChecked -> filterLibrary(null)
                 binding.chipNotStarted.isChecked -> filterLibrary(ReadingStatus.NOT_STARTED)
                 binding.chipReading.isChecked -> filterLibrary(ReadingStatus.READING)
-                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.FINISHED)
+                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.COMPLETED)
                 binding.chipFavorites.isChecked -> loadFavoriteBooks()
             }
         }
@@ -298,7 +298,7 @@ class LibraryTabFragment : Fragment() {
                 binding.chipAll.isChecked -> filterLibrary(null)
                 binding.chipNotStarted.isChecked -> filterLibrary(ReadingStatus.NOT_STARTED)
                 binding.chipReading.isChecked -> filterLibrary(ReadingStatus.READING)
-                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.FINISHED)
+                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.COMPLETED)
                 binding.chipFavorites.isChecked -> loadFavoriteBooks()
             }
         }
@@ -315,7 +315,7 @@ class LibraryTabFragment : Fragment() {
                 binding.chipAll.isChecked -> filterLibrary(null)
                 binding.chipNotStarted.isChecked -> filterLibrary(ReadingStatus.NOT_STARTED)
                 binding.chipReading.isChecked -> filterLibrary(ReadingStatus.READING)
-                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.FINISHED)
+                binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.COMPLETED)
                 binding.chipFavorites.isChecked -> loadFavoriteBooks()
             }
 
@@ -334,7 +334,7 @@ class LibraryTabFragment : Fragment() {
             binding.chipAll.isChecked -> filterLibrary(null)
             binding.chipNotStarted.isChecked -> filterLibrary(ReadingStatus.NOT_STARTED)
             binding.chipReading.isChecked -> filterLibrary(ReadingStatus.READING)
-            binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.FINISHED)
+            binding.chipFinished.isChecked -> filterLibrary(ReadingStatus.COMPLETED)
             binding.chipFavorites.isChecked -> loadFavoriteBooks()
         }
     }

@@ -23,6 +23,7 @@ import com.example.thebook.data.repository.LibraryRepository
 import com.example.thebook.data.repository.ReadingProgressRepository
 import com.example.thebook.data.repository.SharedDataRepository
 import com.example.thebook.databinding.FragmentBookDetailBinding
+import com.example.thebook.ui.auth.AuthViewModel
 import com.example.thebook.ui.library.LibraryViewModel
 import com.example.thebook.ui.library.LibraryViewModelFactory
 import com.example.thebook.utils.Resources
@@ -45,6 +46,7 @@ class BookDetailFragment : Fragment() {
     private val libraryViewModel: LibraryViewModel by viewModels {
         LibraryViewModelFactory(LibraryRepository(), ReadingProgressRepository())
     }
+    private val authViewModel: AuthViewModel by viewModels()
 
     private var currentBook : Book? = null
     private lateinit var reviewAdapter: ReviewAdapter
@@ -70,6 +72,8 @@ class BookDetailFragment : Fragment() {
             applyInsetsToRoot = true
         )
 
+        getCurrentUserType()
+
         setupUI()
         setupRecyclerView()
         observeBookDetails()
@@ -77,6 +81,29 @@ class BookDetailFragment : Fragment() {
         loadReviews()
         checkBookInLibrary()
         bookDetailViewModel.loadBook(args.bookId)
+    }
+
+    private fun getCurrentUserType() {
+        authViewModel.fetchCurrentUser()
+
+        authViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            user?.let {
+                Log.d("BookDetailFragment", "User UID: ${it.uid}, UserType: ${it.userType}")
+
+                if (it.userType == "admin") {
+                    binding.headerBar.btnMenu.setOnClickListener {
+                        currentBook?.bookId?.let { id ->
+                            val action = BookDetailFragmentDirections.actionBookDetailFragmentToAddBookFragment(id)
+                            findNavController().navigate(action)
+                        } ?: Toast.makeText(context, "Không thể chỉnh sửa sách này.", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+
+                }
+            } ?: run {
+                Log.d("BookDetailFragment", "Không thể lấy thông tin người dùng. Ẩn nút thêm sách.")
+            }
+        }
     }
 
     private fun setupUI() {

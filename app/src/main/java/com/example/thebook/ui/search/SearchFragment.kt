@@ -23,12 +23,10 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val searchViewModel: SearchViewModel by viewModels()
-    private val sharedDataViewModel: SharedDataViewModel by viewModels() // // New: ViewModel for shared data
+    private val sharedDataViewModel: SharedDataViewModel by viewModels()
     private lateinit var booksAdapter: BookAdapter
     private lateinit var suggestionsAdapter: SearchSuggestionsAdapter
 
-    // Removed hardcoded genreList as it will be fetched from SharedDataRepository
-    // private val genreList = listOf(...)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,11 +47,75 @@ class SearchFragment : Fragment() {
         observeViewModel()
 
         // Load initial data
-        searchViewModel.searchBooks("")
+        handleIncomingParameters()
 
         // Handle back button
         binding.headerBar.btnBack.setOnClickListener {
             findNavController().popBackStack()
+        }
+    }
+
+    private fun handleIncomingParameters() {
+        val filterCategory = arguments?.getString("filter_category")
+        val searchTitle = arguments?.getString("search_title")
+
+        // Cập nhật title nếu có
+        searchTitle?.let {
+            // Giả sử bạn có TextView để hiển thị title trong header
+            // binding.headerBar.tvTitle.text = it
+        }
+
+        // Tự động search theo category
+        filterCategory?.let { category ->
+            when (category) {
+                "newest" -> {
+                    searchViewModel.searchBooksWithFilter("", "newest")
+                    // Ẩn search suggestions và genre chips vì đây là filter cụ thể
+                    binding.layoutFilters.visibility = View.GONE
+                }
+                "popular" -> {
+                    searchViewModel.searchBooksWithFilter("", "popular")
+                    binding.layoutFilters.visibility = View.GONE
+                }
+                "fiction" -> {
+                    searchViewModel.filterByGenre("fiction")
+                    // Auto-select fiction chip
+                    selectGenreChip("fiction")
+                }
+                "science" -> {
+                    searchViewModel.filterByGenre("science")
+                    selectGenreChip("science")
+                }
+                "history" -> {
+                    searchViewModel.filterByGenre("history")
+                    selectGenreChip("history")
+                }
+                "all" -> {
+                    searchViewModel.searchBooks("")
+                }
+            }
+        } ?: run {
+            // Nếu không có filter, load initial data như bình thường
+            searchViewModel.searchBooks("")
+        }
+    }
+
+    private fun selectGenreChip(genreName: String) {
+        // Sẽ được gọi sau khi chips đã được tạo
+        lifecycleScope.launch {
+            sharedDataViewModel.categories.collect { categories ->
+                val targetCategory = categories.find { it.name.equals(genreName, ignoreCase = true) }
+                targetCategory?.let { category ->
+                    // Tìm và select chip tương ứng
+                    for (i in 0 until binding.chipGroupGenres.childCount) {
+                        val chip = binding.chipGroupGenres.getChildAt(i) as Chip
+                        if (chip.text.toString() == category.displayName) {
+                            chip.isChecked = true
+                            break
+                        }
+                    }
+                }
+            }
         }
     }
 

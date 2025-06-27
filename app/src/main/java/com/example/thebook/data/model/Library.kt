@@ -6,7 +6,7 @@ data class Library(
     val bookId: String = "",
     val addedAt: Long = System.currentTimeMillis(),
     val isFavorite: Boolean = false,
-    val readingStatus: String = "NOT_STARTED", // NOT_STARTED, READING, FINISHED
+    val readingStatus: String = "NOT_STARTED", // NOT_STARTED, READING, COMPLETED
     val lastReadAt: Long = 0L,
     val notes: String = ""
 )
@@ -14,7 +14,7 @@ data class Library(
 enum class ReadingStatus {
     NOT_STARTED("Chưa đọc"),
     READING("Đang đọc"),
-    FINISHED("Đã hoàn thành");
+    COMPLETED("Đã hoàn thành");
 
     constructor(displayName: String) {
         this.displayName = displayName
