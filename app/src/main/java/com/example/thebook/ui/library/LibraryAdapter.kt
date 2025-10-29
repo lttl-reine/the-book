@@ -19,8 +19,8 @@ import java.util.*
 
 class LibraryAdapter(
     private val onBookClick: (Book) -> Unit,
-    private val onMenuClick: (Library, Book) -> Unit,
-    private val onFavoriteClick: (Library, Book) -> Unit
+    private val onMenuClick: (LibraryItem, View) -> Unit,
+    private val onFavoriteClick: (LibraryItem) -> Unit
 ) : ListAdapter<LibraryItem, LibraryAdapter.LibraryViewHolder>(LibraryDiffCallback()) {
 
     private val TAG = "LibraryAdapter" // Thêm TAG cho log
@@ -89,7 +89,8 @@ class LibraryAdapter(
                 } else {
                     imgFavorite.visibility = View.GONE
                 }
-
+                val currentStatus = ReadingStatus.valueOf(library.readingStatus)
+                binding.tvStatus.text = currentStatus.displayName
                 // Added date
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 val addedDate = dateFormat.format(Date(library.addedAt))
@@ -101,11 +102,11 @@ class LibraryAdapter(
                 }
 
                 btnMenu.setOnClickListener {
-                    onMenuClick(library, book)
+                    onMenuClick(item, btnMenu)
                 }
 
                 imgFavorite.setOnClickListener {
-                    onFavoriteClick(library, book)
+                    onFavoriteClick(item)
                 }
             }
         }
@@ -124,8 +125,10 @@ class LibraryDiffCallback : DiffUtil.ItemCallback<LibraryItem>() {
     }
 
     override fun areContentsTheSame(oldItem: LibraryItem, newItem: LibraryItem): Boolean {
-        return oldItem.library == newItem.library &&
-                oldItem.book == newItem.book &&
-                oldItem.progress == newItem.progress
+        return oldItem.library.readingStatus == newItem.library.readingStatus &&
+                oldItem.library.isFavorite == newItem.library.isFavorite &&
+                oldItem.progress?.lastReadPage == newItem.progress?.lastReadPage &&
+                oldItem.library.lastReadAt == newItem.library.lastReadAt &&
+                oldItem.book == newItem.book
     }
 }

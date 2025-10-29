@@ -52,7 +52,6 @@ class BookDetailFragment : Fragment() {
     private lateinit var reviewAdapter: ReviewAdapter
     private val bookRepository = BookRepository()
     private val auth = FirebaseAuth.getInstance()
-    private var isBookInLibrary = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,14 +72,22 @@ class BookDetailFragment : Fragment() {
         )
 
         getCurrentUserType()
-
         setupUI()
         setupRecyclerView()
         observeBookDetails()
         observeLibraryActions()
         loadReviews()
-        checkBookInLibrary()
         bookDetailViewModel.loadBook(args.bookId)
+
+        // Kiểm tra trạng thái sách trong thư viện khi fragment được tạo
+        checkBookInLibraryStatus()
+    }
+
+    private fun checkBookInLibraryStatus() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            libraryViewModel.checkBookInLibrary(currentUser.uid, args.bookId)
+        }
     }
 
     private fun getCurrentUserType() {
@@ -98,10 +105,12 @@ class BookDetailFragment : Fragment() {
                         } ?: Toast.makeText(context, "Không thể chỉnh sửa sách này.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-
+                    // Ẩn menu button cho user thường
+                    binding.headerBar.btnMenu.visibility = View.GONE
                 }
             } ?: run {
                 Log.d("BookDetailFragment", "Không thể lấy thông tin người dùng. Ẩn nút thêm sách.")
+                binding.headerBar.btnMenu.visibility = View.GONE
             }
         }
     }
@@ -114,7 +123,7 @@ class BookDetailFragment : Fragment() {
 
         // Handle more button
         binding.headerBar.btnMenu.setOnClickListener {
-            Toast.makeText(context, "Menu clicked", Toast.LENGTH_LONG).show()
+            //Toast.makeText(context, "Menu clicked", Toast.LENGTH_LONG).show()
         }
 
         // Handle click "read more" for description
@@ -127,7 +136,6 @@ class BookDetailFragment : Fragment() {
 
         // Handle start reading button
         binding.btnStartReading.setOnClickListener {
-            Toast.makeText(context, "Start Reading clicked", Toast.LENGTH_LONG).show()
             val action = BookDetailFragmentDirections.actionBookDetailFragmentToReaderFragment(
                 currentBook!!
             )
@@ -164,26 +172,24 @@ class BookDetailFragment : Fragment() {
             return
         }
 
-        if (isBookInLibrary) {
-            // Remove from library
-            libraryViewModel.removeBookFromLibrary(currentUser.uid, args.bookId)
-        } else {
-            // Add to library
-            libraryViewModel.addBookToLibrary(currentUser.uid, args.bookId)
+        currentBook?.let { book ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                // Kiểm tra trạng thái hiện tại của sách trong thư viện
+                val isInLibrary = libraryViewModel.isBookInLibrary(currentUser.uid, book.bookId)
+
+                if (isInLibrary) {
+                    // Xóa sách khỏi thư viện
+                    libraryViewModel.removeBookFromLibrary(currentUser.uid, book.bookId)
+                } else {
+                    // Thêm sách vào thư viện
+                    libraryViewModel.addBookToLibrary(currentUser.uid, book.bookId)
+                }
+            }
         }
     }
 
-    private fun checkBookInLibrary() {
-        val currentUser = auth.currentUser ?: return
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            isBookInLibrary = libraryViewModel.isBookInLibrary(currentUser.uid, args.bookId)
-            updateLibraryButton()
-        }
-    }
-
-    private fun updateLibraryButton() {
-        if (isBookInLibrary) {
+    private fun updateLibraryButton(isInLibrary: Boolean) {
+        if (isInLibrary) {
             binding.btnAddLibrary.text = "Xóa khỏi thư viện"
             binding.btnAddLibrary.setCompoundDrawablesWithIntrinsicBounds(
                 R.drawable.ic_close_24, 0, 0, 0
@@ -197,6 +203,14 @@ class BookDetailFragment : Fragment() {
     }
 
     private fun observeLibraryActions() {
+        // Observe book in library status
+        viewLifecycleOwner.lifecycleScope.launch {
+            libraryViewModel.isBookInLibrary.collectLatest { isInLibrary ->
+                Log.d(TAG, "Book in library status: $isInLibrary")
+                updateLibraryButton(isInLibrary)
+            }
+        }
+
         // Observe add to library result
         viewLifecycleOwner.lifecycleScope.launch {
             libraryViewModel.addToLibraryResult.collectLatest { resource ->
@@ -207,10 +221,12 @@ class BookDetailFragment : Fragment() {
                         }
                         is Resources.Success -> {
                             binding.btnAddLibrary.isEnabled = true
-                            isBookInLibrary = true
-                            updateLibraryButton()
                             Toast.makeText(context, "Đã thêm sách vào thư viện", Toast.LENGTH_SHORT).show()
                             libraryViewModel.clearAddToLibraryResult()
+                            // Cập nhật lại trạng thái
+                            auth.currentUser?.let { user ->
+                                libraryViewModel.checkBookInLibrary(user.uid, args.bookId)
+                            }
                         }
                         is Resources.Error -> {
                             binding.btnAddLibrary.isEnabled = true
@@ -236,10 +252,12 @@ class BookDetailFragment : Fragment() {
                         }
                         is Resources.Success -> {
                             binding.btnAddLibrary.isEnabled = true
-                            isBookInLibrary = false
-                            updateLibraryButton()
                             Toast.makeText(context, "Đã xóa sách khỏi thư viện", Toast.LENGTH_SHORT).show()
                             libraryViewModel.clearRemoveFromLibraryResult()
+                            // Cập nhật lại trạng thái
+                            auth.currentUser?.let { user ->
+                                libraryViewModel.checkBookInLibrary(user.uid, args.bookId)
+                            }
                         }
                         is Resources.Error -> {
                             binding.btnAddLibrary.isEnabled = true
@@ -387,6 +405,9 @@ class BookDetailFragment : Fragment() {
             // Ratings & Reviews
             tvRating.text = String.format("%.1f/5", book.averageRating)
             tvReviewCount.text = "${book.totalRatings} lượt đánh giá"
+
+            // Kiểm tra lại trạng thái sách trong thư viện sau khi load book
+            checkBookInLibraryStatus()
         }
     }
 

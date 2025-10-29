@@ -70,10 +70,7 @@ class AddBookFragment : Fragment() {
         setupImagePreview()
 
         if (bookIdToEdit != null) {
-            // Nếu có bookId, tức là đang ở chế độ chỉnh sửa
-            // Gọi ViewModel để lấy thông tin sách và điền vào form
             Log.d(TAG, "Editing existing book: $bookIdToEdit")
-            // Có thể đổi text của nút "Thêm sách" thành "Cập nhật sách"
             binding.btnSaveBook.text = "Cập nhật sách"
             addBookViewModel.loadBookToEdit(bookIdToEdit!!)
         } else {
@@ -200,7 +197,6 @@ class AddBookFragment : Fragment() {
                                     binding.etAuthor.setText(it.author)
                                     binding.etDescription.setText(it.description)
                                     binding.etPublishedYear.setText(it.publishedYear.toString())
-                                    binding.etPageCount.setText(it.pageCount.toString())
                                     binding.etImageUrl.setText(it.coverImageUrl)
                                     binding.etEpubUrl.setText(it.bookFileUrl)
 
@@ -259,7 +255,6 @@ class AddBookFragment : Fragment() {
         val author = binding.etAuthor.text.toString().trim()
         val description = binding.etDescription.text.toString().trim()
         val publishedYear = binding.etPublishedYear.text.toString().toIntOrNull() ?: 0
-        val pageCount = binding.etPageCount.text.toString().toIntOrNull() ?: 0
         val imageUrl = binding.etImageUrl.text.toString().trim()
         val epubUrl = binding.etEpubUrl.text.toString().trim()
         val language = (binding.spinnerLanguage.selectedItem as? Language)?.name ?: "Vietnamese"
@@ -270,29 +265,26 @@ class AddBookFragment : Fragment() {
             return
         }
 
-        // Tạo một đối tượng Book tạm thời với dữ liệu từ form
-        // bookId sẽ được gán lại nếu là chế độ chỉnh sửa
         val newOrUpdatedBook = Book(
-            bookId = bookIdToEdit ?: "", // Nếu là chỉnh sửa, dùng bookId cũ, nếu không thì rỗng (sẽ được Firebase tạo)
+            bookId = bookIdToEdit ?: "",
             title = title,
             author = author,
             description = description,
             coverImageUrl = imageUrl,
             bookFileUrl = epubUrl,
             publishedYear = publishedYear,
-            pageCount = pageCount,
+            pageCount = 0,
             language = language,
-            genre = selectedGenres.toList(), // Chuyển từ Set sang List (nếu đã sửa selectedGenres)
-            averageRating = 0.0f, // Sẽ được cập nhật riêng
-            totalRatings = 0,    // Sẽ được cập nhật riêng
-            uploadDate = System.currentTimeMillis() // Giữ nguyên uploadDate nếu là chỉnh sửa, hoặc dùng ngày hiện tại
+            genre = selectedGenres.toList(),
+            averageRating = 0.0f,
+            totalRatings = 0,
+            uploadDate = System.currentTimeMillis()
         )
 
-        // KIỂM TRA ĐÂY LÀ THÊM MỚI HAY CHỈNH SỬA
         if (bookIdToEdit != null) {
             val currentBookResource = addBookViewModel.bookToEdit.value
-            if (currentBookResource is Resources.Success) { // Kiểm tra nếu là trạng thái Success
-                currentBookResource.data?.let { originalBook -> // Giờ đây data đã có sẵn
+            if (currentBookResource is Resources.Success) {
+                currentBookResource.data?.let { originalBook ->
                     val bookForUpdate = newOrUpdatedBook.copy(
                         bookId = originalBook.bookId,
                         averageRating = originalBook.averageRating,
@@ -304,7 +296,7 @@ class AddBookFragment : Fragment() {
                     )
                     addBookViewModel.updateBook(bookForUpdate)
 
-                } ?: Toast.makeText(context, "Thông tin sách gốc trống. Không thể cập nhật.", Toast.LENGTH_SHORT).show()
+                }
             } else if (currentBookResource is Resources.Loading) {
                 Log.d(TAG, "handleAddBookClick: Loading")
             } else if (currentBookResource is Resources.Error) {
@@ -323,7 +315,6 @@ class AddBookFragment : Fragment() {
         binding.etAuthor.text?.clear()
         binding.etDescription.text?.clear()
         binding.etPublishedYear.text?.clear()
-        binding.etPageCount.text?.clear()
         binding.etImageUrl.text?.clear()
         binding.etEpubUrl.text?.clear()
         binding.spinnerLanguage.setSelection(0)

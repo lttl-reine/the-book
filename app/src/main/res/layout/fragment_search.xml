@@ -82,7 +82,8 @@
                             android:padding="8dp"
                             android:text="Clear Filter"
                             android:textColor="@color/primary_500"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:visibility="gone"/>
 
                     </LinearLayout>
 
@@ -159,7 +160,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
                     <TextView
                         android:layout_width="wrap_content"

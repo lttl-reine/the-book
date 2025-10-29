@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/white">
 
-    <!-- Fixed Header Bar - Always on top -->
     <include
         android:id="@+id/header_bar"
         layout="@layout/layout_detail_header"
@@ -14,9 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:elevation="4dp"
-        android:background="@android:color/white" />
+        android:background="@color/white" />
 
-    <!-- Scrollable Content Below Header -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -29,7 +27,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Book Cover -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -48,106 +45,110 @@
                         android:layout_width="120dp"
                         android:layout_height="180dp"
                         android:scaleType="centerCrop"
-                        android:background="@drawable/book_cover_placeholder"/>
+                        android:background="@drawable/book_cover_placeholder"
+                        android:contentDescription="@string/book_cover_desc" />
 
                 </androidx.cardview.widget.CardView>
 
             </LinearLayout>
 
-            <!-- Book Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Title -->
                 <TextView
                     android:id="@+id/tv_book_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Atomic Habits"
+                    android:text="@string/atomic_habits_title"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/black"
                     android:gravity="start"
                     android:layout_marginBottom="8dp" />
 
-                <!-- Author and Year -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="start"
+                    android:baselineAligned="false"
                     android:layout_marginBottom="16dp">
 
                     <TextView
                         android:id="@+id/tv_author"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="James Clear"
+                        android:text="@string/james_clear_author"
                         android:textSize="14sp"
-                        android:textColor="@color/primary_700" />
+                        android:textColor="@color/primary_700"
+                        android:importantForAutofill="no" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" • "
+                        android:text="@string/bullet_point_separator"
+                        android:textColor="@android:color/darker_gray"
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
+                        tools:ignore="TextContrastCheck" />
 
                     <TextView
                         android:id="@+id/tv_category"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Self-help"
+                        android:text="@string/self_help_category"
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="@android:color/darker_gray"
+                        android:importantForAutofill="no" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" • "
+                        android:text="@string/bullet_point_separator"
+                        android:textColor="@android:color/darker_gray"
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
+                        tools:ignore="TextContrastCheck" />
 
                     <TextView
                         android:id="@+id/tv_year"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2018"
+                        android:text="@string/year_2018"
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="@android:color/darker_gray"
+                        android:importantForAutofill="no" />
 
                 </LinearLayout>
 
-                <!-- Description -->
                 <TextView
                     android:id="@+id/tv_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="An easy &amp; proven way to build good habits and break bad ones. Atomic Habits offers a proven framework for improving--every day."
+                    android:text="@string/atomic_habits_description"
                     android:textSize="14sp"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/black"
                     android:lineSpacingExtra="2dp"
                     android:justificationMode="inter_word"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="8dp"
+                    android:importantForAutofill="no" />
 
                 <TextView
                     android:id="@+id/tv_read_more"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Đọc thêm..."
-                    android:textSize="14sp"
-                    android:textColor="@color/primary_700"
                     android:layout_gravity="center"
                     android:layout_marginBottom="24dp"
+                    android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="?attr/selectableItemBackground" />
+                    android:text="@string/read_more"
+                    android:textColor="@color/primary_700"
+                    android:textSize="14sp"
+                    tools:ignore="TouchTargetSizeCheck" />
 
             </LinearLayout>
 
-            <!-- Action Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -159,7 +160,7 @@
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:text="Bắt đầu đọc"
+                    android:text="@string/start_reading_button"
                     app:icon="@drawable/ic_book_16"
                     app:iconGravity="textStart"
                     android:textColor="@color/white"
@@ -176,9 +177,9 @@
                     android:layout_marginStart="4dp"
                     android:layout_weight="1"
                     android:background="@drawable/btn_secondary_background"
-                    android:text="Thêm vào thư viện"
+                    android:text="@string/add_to_library_button"
                     android:textAllCaps="false"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/black"
                     android:textSize="12sp"
                     app:backgroundTint="@null"
                     app:icon="@drawable/ic_plus_16"
@@ -188,7 +189,6 @@
 
             </LinearLayout>
 
-            <!-- Ratings & Reviews Section -->
             <LinearLayout
                 android:id="@+id/layout_reviews_section"
                 android:layout_width="match_parent"
@@ -196,72 +196,73 @@
                 android:orientation="vertical"
                 android:layout_marginBottom="24dp">
 
-                <!-- Section Header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
+                    android:baselineAligned="false"
                     android:layout_marginBottom="16dp">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Xếp hạng &amp; đánh giá"
+                        android:text="@string/ratings_reviews_title"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@color/black" />
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btn_write_review"
                         android:layout_width="wrap_content"
                         android:layout_height="32dp"
-                        android:text="✍️ Viết đánh giá"
-                        android:textSize="12sp"
-                        android:textColor="@color/primary_700"
                         android:background="@drawable/btn_secondary_background"
                         android:paddingHorizontal="12dp"
-                        android:textAllCaps="false" />
+                        android:text="@string/write_review_button"
+                        android:textAllCaps="false"
+                        android:textColor="@color/primary_700"
+                        android:textSize="12sp"
+                        tools:ignore="TouchTargetSizeCheck" />
 
                 </LinearLayout>
 
-                <!-- Rating Summary -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
+                    android:baselineAligned="false"
                     android:layout_marginBottom="16dp">
 
                     <TextView
                         android:id="@+id/tv_rating"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4.7/5"
+                        android:text="@string/rating_value"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@android:color/black"
+                        android:textColor="@color/black"
                         android:layout_marginEnd="12dp"/>
 
                     <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:src="@drawable/ic_star_24"
-                        android:layout_marginEnd="2dp" />
+                        android:layout_marginEnd="2dp"
+                        android:contentDescription="@string/star_icon_desc" />
 
                     <TextView
                         android:id="@+id/tv_review_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1,200 Lượt đánh giá"
+                        android:text="@string/review_count_format"
                         android:textSize="14sp"
                         android:textColor="@android:color/darker_gray"
                         android:layout_marginStart="12dp" />
 
                 </LinearLayout>
 
-                <!-- Review Items -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_reviews"
                     android:layout_width="match_parent"
@@ -274,18 +275,18 @@
                     android:id="@+id/tv_see_all_reviews"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
-                    android:textSize="14sp"
-                    android:textColor="@color/primary_700"
                     android:layout_gravity="end"
                     android:layout_marginTop="12dp"
+                    android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="?attr/selectableItemBackground" />
+                    android:text="@string/see_all_reviews"
+                    android:textColor="@color/primary_700"
+                    android:textSize="14sp"
+                    tools:ignore="TouchTargetSizeCheck" />
 
             </LinearLayout>
 
-            <!-- Empty Reviews State -->
             <LinearLayout
                 android:id="@+id/layout_empty_reviews"
                 android:layout_width="match_parent"
@@ -301,12 +302,13 @@
                     android:layout_height="64dp"
                     android:src="@drawable/ic_star_24"
                     android:alpha="0.3"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="16dp"
+                    android:contentDescription="@string/empty_reviews_star_icon_desc" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chưa có đánh giá nào"
+                    android:text="@string/no_reviews_yet"
                     android:textSize="16sp"
                     android:textColor="@android:color/darker_gray"
                     android:layout_marginBottom="8dp" />
@@ -314,7 +316,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hãy là người đầu tiên đánh giá cuốn sách này!"
+                    android:text="@string/be_the_first_review"
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
                     android:gravity="center"
@@ -324,49 +326,40 @@
                     android:id="@+id/btn_write_first_review"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="✍️ Viết đánh giá đầu tiên"
-                    android:textColor="@android:color/white"
+                    android:text="@string/write_first_review_button"
+                    android:textColor="@color/white"
                     android:background="@drawable/btn_primary_background"
                     android:paddingHorizontal="24dp"
                     android:textAllCaps="false" />
 
             </LinearLayout>
 
-            <!-- Related Books Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:layout_marginBottom="24dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_weight="1"
+                    android:text="@string/similar_books_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Sách tương tự"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tv_see_all_related"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Xem tất cả"
-                        android:textSize="14sp"
-                        android:textColor="@color/primary_700"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground" />
-
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/tv_see_all_related"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/see_all_related"
+                    android:textColor="@color/primary_700"
+                    android:textSize="14sp"
+                    tools:ignore="TouchTargetSizeCheck" />
 
             </LinearLayout>
 

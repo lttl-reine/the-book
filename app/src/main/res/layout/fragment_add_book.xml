@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@android:color/white">
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +22,6 @@
             android:visibility="gone"
             app:indicatorColor="?attr/colorSecondary"/>
 
-        <!-- Header with back button and title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,204 +32,176 @@
 
             <ImageView
                 android:id="@+id/btn_back"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_arrow_back_24"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
+                android:padding="12dp"
+                android:contentDescription="@string/back_button_desc"
                 android:layout_marginEnd="16dp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Thêm Sách Mới"
+                android:text="@string/add_new_book_title"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/black" />
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_profile"
-                android:background="@drawable/circle_background" />
+                android:background="@drawable/circle_background"
+                android:contentDescription="@string/profile_icon_desc" />
 
         </LinearLayout>
 
-        <!-- Book Details Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chi Tiết Sách"
+            android:text="@string/book_details_section_title"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="16dp" />
 
-        <!-- Title Field -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tiêu đề *"
+            android:text="@string/title_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <EditText
             android:id="@+id/et_title"
-            android:layout_width="match_parent"
+            android:layout_width="375dp"
             android:layout_height="48dp"
-            android:hint="Nhập tiêu đề sách"
+            android:hint="@string/enter_book_title_hint"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:inputType="textCapWords"
+            android:importantForAutofill="yes"
+            android:autofillHints="bookTitle" />
 
-        <!-- Author Field -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tác giả *"
+            android:text="@string/author_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <EditText
             android:id="@+id/et_author"
-            android:layout_width="match_parent"
+            android:layout_width="375dp"
             android:layout_height="48dp"
-            android:hint="Nhập tên tác giả"
+            android:hint="@string/enter_author_name_hint"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:inputType="textPersonName|textCapWords"
+            android:importantForAutofill="yes"
+            android:autofillHints="personName" />
 
-        <!-- Genre Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Thể loại"
+            android:text="@string/genre_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chip_group_genre"
+            style="@style/CustomCheckableChipStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/grey_700"
+            android:contentDescription="genres"
             app:chipSpacingHorizontal="8dp"
             app:chipSpacingVertical="8dp"
-            app:singleLine="false"
             app:selectionRequired="false"
+            app:singleLine="false"
             app:singleSelection="false"
-            style="@style/CustomCheckableChipStyle"
-            android:backgroundTint="@color/grey_700"
-            android:layout_marginBottom="16dp">
+            tools:ignore="TouchTargetSizeCheck" />
 
-        </com.google.android.material.chip.ChipGroup>
-
-        <!-- Description Field -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mô tả"
+            android:text="@string/description_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <EditText
             android:id="@+id/et_description"
-            android:layout_width="match_parent"
+            android:layout_width="375dp"
             android:layout_height="120dp"
-            android:hint="Nhập tóm tắt ngắn gọn về sách (tối đa 500 ký tự)"
+            android:hint="@string/description_hint"
             android:background="@drawable/et_background"
             android:padding="12dp"
             android:textSize="14sp"
             android:gravity="top"
             android:inputType="textMultiLine"
             android:maxLength="500"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:importantForAutofill="yes"
+            android:autofillHints="longMessage" />
 
         <TextView
             android:id="@+id/tv_char_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0/500"
-            android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
             android:layout_gravity="end"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:text="@string/char_count_format"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp"
+            tools:ignore="TextContrastCheck" />
 
-        <!-- Published Year and Page Count -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
+            android:baselineAligned="false"
             android:layout_marginBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginEnd="8dp">
+                android:text="@string/published_year_label"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Năm Xuất bản"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/black"
-                    android:layout_marginBottom="8dp" />
-
-                <EditText
-                    android:id="@+id/et_published_year"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="2025"
-                    android:background="@drawable/et_background"
-                    android:padding="12dp"
-                    android:textSize="14sp"
-                    android:inputType="number" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Số Trang"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/black"
-                    android:layout_marginBottom="8dp" />
-
-                <EditText
-                    android:id="@+id/et_page_count"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="250"
-                    android:background="@drawable/et_background"
-                    android:padding="12dp"
-                    android:textSize="14sp"
-                    android:inputType="number" />
-
-            </LinearLayout>
+            <EditText
+                android:id="@+id/et_published_year"
+                android:layout_width="60dp"
+                android:layout_height="48dp"
+                android:hint="@string/published_year_hint"
+                android:background="@drawable/et_background"
+                android:padding="12dp"
+                android:textSize="14sp"
+                android:inputType="number"
+                android:importantForAutofill="yes"
+                android:autofillHints="year"
+                android:maxLength="4" />
 
         </LinearLayout>
 
-        <!-- Language Dropdown -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ngôn ngữ"
+            android:text="@string/language_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <Spinner
@@ -238,31 +209,32 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@drawable/et_background"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:importantForAutofill="yes"
+            android:autofillHints="language" />
 
-        <!-- Media Upload Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tải Lên Tệp Media"
+            android:text="@string/media_upload_section_title"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="16dp" />
 
-        <!-- Cover Image -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ảnh Bìa"
+            android:text="@string/cover_image_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginBottom="16dp">
 
             <ImageView
@@ -272,7 +244,8 @@
                 android:background="@drawable/book_cover_placeholder"
                 android:src="@drawable/book_cover_placeholder"
                 android:scaleType="centerInside"
-                android:layout_marginEnd="16dp" />
+                android:layout_marginEnd="16dp"
+                android:contentDescription="@string/book_cover_preview_desc" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -282,45 +255,49 @@
 
                 <EditText
                     android:id="@+id/et_image_url"
-                    android:layout_width="match_parent"
+                    android:layout_width="375dp"
                     android:layout_height="40dp"
                     android:layout_marginTop="32dp"
-                    android:hint="Nhập URL ảnh"
+                    android:hint="@string/image_url_hint"
                     android:background="@drawable/btn_secondary_background"
                     android:padding="8dp"
-                    android:textSize="12sp" />
+                    android:textSize="12sp"
+                    android:inputType="textUri"
+                    android:importantForAutofill="yes"
+                    android:autofillHints="url" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Book File Upload -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tệp Sách"
+            android:text="@string/book_file_label"
             android:textSize="14sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp" />
 
         <EditText
             android:id="@+id/et_epub_url"
-            android:layout_width="match_parent"
+            android:layout_width="375dp"
             android:layout_height="40dp"
-            android:hint="Nhập URL epub"
+            android:hint="@string/epub_url_hint"
             android:background="@drawable/btn_secondary_background"
             android:padding="8dp"
             android:textSize="12sp"
-            android:layout_marginBottom="32dp"/>
+            android:layout_marginBottom="32dp"
+            android:inputType="textUri"
+            android:importantForAutofill="yes"
+            android:autofillHints="url" />
 
-        <!-- Save Button -->
         <Button
             android:id="@+id/btn_save_book"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Thêm Sách"
+            android:text="@string/add_book_button"
             android:background="@drawable/btn_primary_background"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
 

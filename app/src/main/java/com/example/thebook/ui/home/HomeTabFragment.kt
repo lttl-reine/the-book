@@ -33,9 +33,14 @@ class HomeTabFragment : Fragment() {
     private lateinit var scienceBooksAdapter: BookAdapter
     private lateinit var historyBooksAdapter: BookAdapter
     private lateinit var allBooksAdapter: BookAdapter
+    private lateinit var featuredBooksAdapter: FeaturedBooksAdapter
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val authViewModel: AuthViewModel by viewModels()
+
+    // Declare handler and runnable for auto-scroll
+    private val autoScrollHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private lateinit var autoScrollRunnable: Runnable
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,10 +61,55 @@ class HomeTabFragment : Fragment() {
 
         setupClickListeners()
         setupRecyclerViews()
-        setupChipListeners()
+        setupFeaturedBanner()
         observeViewModelData()
         getCurrentUserType()
     }
+
+    private fun setupFeaturedBanner() {
+        featuredBooksAdapter = FeaturedBooksAdapter { book ->
+            navigateToBookDetail(book)
+        }
+
+        binding.vpFeaturedBooks.adapter = featuredBooksAdapter
+
+        // Setup page transformer để tạo hiệu ứng slide đẹp
+        binding.vpFeaturedBooks.setPageTransformer { page, position ->
+            val absPosition = Math.abs(position)
+            page.apply {
+                translationY = absPosition * 50f
+                scaleX = 1f - absPosition * 0.1f
+                scaleY = 1f - absPosition * 0.1f
+                alpha = 1f - absPosition * 0.3f
+            }
+        }
+
+        // Auto scroll banner
+        startAutoScroll()
+    }
+
+    private fun startAutoScroll() {
+        autoScrollRunnable = object : Runnable {
+            override fun run() {
+                // Ensure binding is not null before accessing its views
+                if (_binding == null) {
+                    autoScrollHandler.removeCallbacks(this) // Stop if view is destroyed
+                    return
+                }
+                val currentItem = binding.vpFeaturedBooks.currentItem
+                val itemCount = featuredBooksAdapter.itemCount
+
+                if (itemCount > 0) {
+                    val nextItem = (currentItem + 1) % itemCount
+                    binding.vpFeaturedBooks.setCurrentItem(nextItem, true)
+                }
+
+                autoScrollHandler.postDelayed(this, 4000) // 4 giây
+            }
+        }
+        autoScrollHandler.postDelayed(autoScrollRunnable, 4000)
+    }
+
 
     private fun setupClickListeners() {
         // Add book button
@@ -212,60 +262,35 @@ class HomeTabFragment : Fragment() {
         }
     }
 
-    private fun setupChipListeners() {
-        // Filter chips
-        binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedFilter("all")
-                updateChipStates(binding.chipAll)
-            }
-        }
-
-        binding.chipCurrentlyReading.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedFilter("currently_reading")
-                updateChipStates(binding.chipCurrentlyReading)
-            }
-        }
-
-        binding.chipCompleted.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedFilter("completed")
-                updateChipStates(binding.chipCompleted)
-            }
-        }
-
-        // Sort chips
-        binding.chipSortTitle.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedSort("title")
-            }
-        }
-
-        binding.chipSortAuthor.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedSort("author")
-            }
-        }
-
-        binding.chipSortRating.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                homeViewModel.setSelectedSort("rating")
-            }
-        }
-    }
-
-    private fun updateChipStates(selectedChip: com.google.android.material.chip.Chip) {
-        // Reset all chips
-        binding.chipAll.isChecked = false
-        binding.chipCurrentlyReading.isChecked = false
-        binding.chipCompleted.isChecked = false
-
-        // Set selected chip
-        selectedChip.isChecked = true
-    }
-
     private fun observeViewModelData() {
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.newestBooks.collect { resource ->
+                    when (resource) {
+                        is Resources.Success -> {
+                            val books = resource.data
+                            if (!books.isNullOrEmpty()) {
+                                // Lấy 5 sách đầu tiên cho banner
+                                val featuredBooks = books.take(5)
+                                featuredBooksAdapter.submitList(featuredBooks)
+
+                                // Ẩn banner nếu không có sách
+                                binding.layoutFeaturedBanner.visibility =
+                                    if (featuredBooks.isNotEmpty()) View.VISIBLE else View.GONE
+                            }
+                        }
+                        else -> {
+                            binding.layoutFeaturedBanner.visibility = View.GONE
+                        }
+                    }
+
+                    // Xử lý phần còn lại cho RecyclerView bình thường
+                    handleNewestBooks(resource)
+                }
+            }
+        }
+
         // Observe loading state
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

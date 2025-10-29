@@ -8,8 +8,8 @@
     <string name="reading_preferences">Sở thích\n</string>
     <string name="edit">Chỉnh sửa\n</string>
     <string name="books_read">Đã đọc</string>
-    <string name="total_time">Tổng thời gian\n</string>
-    <string name="history">Lịch sử\n</string>
+    <string name="total_time">Tổng thời gian</string>
+    <string name="history">Lịch sử</string>
     <string name="fav_genre">Thể loại yêu thích</string>
 
     <!--  Login Fragment  -->
@@ -48,6 +48,58 @@
 
 
     <string name="login_link">Đăng nhập</string>
+
+    <!--  Add book Fragment  -->
+    <string name="add_new_book_title">Thêm Sách Mới</string>
+    <string name="book_details_section_title">Chi Tiết Sách</string>
+    <string name="title_label">Tiêu đề *</string>
+    <string name="enter_book_title_hint">Nhập tiêu đề sách</string>
+    <string name="author_label">Tác giả *</string>
+    <string name="enter_author_name_hint">Nhập tên tác giả</string>
+    <string name="genre_label">Thể loại</string>
+    <string name="description_label">Mô tả</string>
+    <string name="description_hint">Nhập tóm tắt ngắn gọn về sách (tối đa 500 ký tự)</string>
+    <string name="char_count_format">0/500</string>
+    <string name="published_year_label">Năm Xuất bản</string>
+    <string name="published_year_hint">2025</string>
+    <string name="page_count_label">Số Trang</string>
+    <string name="page_count_hint">250</string>
+    <string name="language_label">Ngôn ngữ</string>
+    <string name="media_upload_section_title">Tải Lên Tệp Media</string>
+    <string name="cover_image_label">Ảnh Bìa</string>
+    <string name="image_url_hint">Nhập URL ảnh</string>
+    <string name="book_file_label">Tệp Sách</string>
+    <string name="epub_url_hint">Nhập URL epub</string>
+    <string name="add_book_button">Thêm Sách</string>
+
+    <string name="back_button_desc">Nút quay lại</string>
+    <string name="profile_icon_desc">Biểu tượng hồ sơ</string>
+    <string name="book_cover_preview_desc">Ảnh bìa sách</string>
+
+    <!--  Book Detail Fragment  -->
+    <string name="book_cover_desc">Ảnh bìa sách</string>
+    <string name="atomic_habits_title">Atomic Habits</string>
+    <string name="james_clear_author">James Clear</string>
+    <string name="bullet_point_separator"> • </string>
+    <string name="self_help_category">Self-help</string>
+    <string name="year_2018">2018</string>
+    <string name="atomic_habits_description">An easy &amp; proven way to build good habits and break bad ones. Atomic Habits offers a proven framework for improving--every day.</string>
+    <string name="read_more">Đọc thêm...</string>
+    <string name="start_reading_button">Bắt đầu đọc</string>
+    <string name="add_to_library_button">Thêm vào thư viện</string>
+    <string name="ratings_reviews_title">Xếp hạng &amp; đánh giá</string>
+    <string name="write_review_button">✍️ Viết đánh giá</string>
+    <string name="rating_value">4.7/5</string>
+    <string name="star_icon_desc">Biểu tượng ngôi sao đánh giá</string>
+    <string name="review_count_format">1,200 Lượt đánh giá</string>
+    <string name="see_all_reviews">Xem tất cả</string>
+    <string name="empty_reviews_star_icon_desc">Biểu tượng ngôi sao để đánh giá</string>
+    <string name="no_reviews_yet">Chưa có đánh giá nào</string>
+    <string name="be_the_first_review">Hãy là người đầu tiên đánh giá cuốn sách này!</string>
+    <string name="write_first_review_button">✍️ Viết đánh giá đầu tiên</string>
+    <string name="similar_books_title">Sách tương tự</string>
+    <string name="see_all_related">Xem tất cả</string>
+
     <string-array name="sort_options">
         <item>Relevance</item>
         <item>Title A-Z</item>

@@ -60,6 +60,11 @@ class LibraryTabFragment : Fragment() {
         setupFilterChips()
         observeLibraryData()
         loadLibrary()
+
+        binding.btnExploreBooks.setOnClickListener {
+            val action = LibraryTabFragmentDirections.actionLibraryTabFragmentToSearchFragment()
+            findNavController().navigate(action)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -69,11 +74,11 @@ class LibraryTabFragment : Fragment() {
                 val action = LibraryTabFragmentDirections.actionLibraryTabFragmentToBookDetailFragment(book.bookId)
                 findNavController().navigate(action)
             },
-            onMenuClick = { library, book ->
-                showBookMenu(library, book)
+            onMenuClick = { libraryItem, anchorView ->
+                showBookMenu(libraryItem, anchorView)
             },
-            onFavoriteClick = { library, book ->
-                toggleFavorite(library, book)
+            onFavoriteClick = { libraryItem ->
+                toggleFavorite(libraryItem)
             }
         )
 
@@ -219,18 +224,36 @@ class LibraryTabFragment : Fragment() {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
-    private fun showBookMenu(library: Library, book: Book) {
-        val popup = PopupMenu(requireContext(), binding.rvLibraryBooks)
+    private fun showBookMenu(libraryItem: LibraryItem, anchorView: View) {
+        val popup = PopupMenu(requireContext(), anchorView)
         popup.menuInflater.inflate(R.menu.menu_library_book, popup.menu)
 
-        // Update menu items based on current status
-        val status = ReadingStatus.valueOf(library.readingStatus)
-        popup.menu.findItem(R.id.action_mark_reading).isVisible = status != ReadingStatus.READING
-        popup.menu.findItem(R.id.action_mark_finished).isVisible = status != ReadingStatus.COMPLETED
-        popup.menu.findItem(R.id.action_mark_not_started).isVisible = status != ReadingStatus.NOT_STARTED
+        val library = libraryItem.library
+        val book = libraryItem.book
 
-        val favoriteItem = popup.menu.findItem(R.id.action_toggle_favorite)
-        favoriteItem.title = if (library.isFavorite) "Bỏ yêu thích" else "Thêm vào yêu thích"
+        // Lấy trạng thái đọc hiện tại của sách
+        val currentStatus = ReadingStatus.valueOf(library.readingStatus)
+
+        // Lấy các MenuItem cần điều chỉnh trạng thái
+        val markReadingItem = popup.menu.findItem(R.id.action_mark_reading)
+        val markFinishedItem = popup.menu.findItem(R.id.action_mark_finished)
+        val markNotStartedItem = popup.menu.findItem(R.id.action_mark_not_started)
+        val toggleFavoriteItem = popup.menu.findItem(R.id.action_toggle_favorite)
+        // val continueReadingItem = popup.menu.findItem(R.id.action_continue_reading) // Nếu bạn thêm mục này
+
+        // Vô hiệu hóa (disable) mục menu tương ứng với trạng thái hiện tại
+        markReadingItem.isEnabled = (currentStatus != ReadingStatus.READING)
+        markFinishedItem.isEnabled = (currentStatus != ReadingStatus.COMPLETED)
+        markNotStartedItem.isEnabled = (currentStatus != ReadingStatus.NOT_STARTED)
+
+        // Cập nhật tiêu đề cho mục yêu thích
+        toggleFavoriteItem.title = if (library.isFavorite) "Bỏ yêu thích" else "Thêm vào yêu thích"
+
+        // Logic cho "Tiếp tục đọc" (nếu có): chỉ kích hoạt nếu sách đang đọc và có tiến độ
+        // if (continueReadingItem != null) {
+        //     continueReadingItem.isVisible = (currentStatus == ReadingStatus.READING && libraryItem.progress != null && !libraryItem.progress.isCompleted)
+        //     continueReadingItem.isEnabled = (currentStatus == ReadingStatus.READING && libraryItem.progress != null && !libraryItem.progress.isCompleted)
+        // }
 
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -247,20 +270,20 @@ class LibraryTabFragment : Fragment() {
                     true
                 }
                 R.id.action_toggle_favorite -> {
-                    toggleFavorite(library, book)
+                    toggleFavorite(libraryItem)
                     true
                 }
                 R.id.action_remove_from_library -> {
                     removeFromLibrary(library, book)
                     true
                 }
+                // R.id.action_continue_reading -> { // Nếu bạn thêm mục này
+                //     navigateToReading(book)
+                //     true
+                // }
                 else -> false
             }
         }
-
-        // Add "Continue Reading" option if there's progress
-        val continueItem = popup.menu.findItem(R.id.iv_search)
-        // This would need to be added to your menu XML
 
         popup.show()
     }
@@ -275,7 +298,6 @@ class LibraryTabFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             libraryViewModel.updateReadingStatus(currentUser.uid, book.bookId, newStatus)
-
             // Refresh the current filter
             when {
                 binding.chipAll.isChecked -> filterLibrary(null)
@@ -287,8 +309,11 @@ class LibraryTabFragment : Fragment() {
         }
     }
 
-    private fun toggleFavorite(library: Library, book: Book) {
+    private fun toggleFavorite(libraryItem : LibraryItem) {
         val currentUser = auth.currentUser ?: return
+
+        val library = libraryItem.library // Lấy library object mới nhất
+        val book = libraryItem.book // Lấy book object mới nhất
 
         viewLifecycleOwner.lifecycleScope.launch {
             libraryViewModel.updateFavoriteStatus(currentUser.uid, book.bookId, !library.isFavorite)
@@ -325,7 +350,6 @@ class LibraryTabFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh data when returning to fragment to get latest reading progress
         refreshCurrentView()
     }
 

@@ -60,6 +60,9 @@
         <action
             android:id="@+id/action_libraryTabFragment_to_bookDetailFragment"
             app:destination="@id/bookDetailFragment" />
+        <action
+            android:id="@+id/action_libraryTabFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
     </fragment>
     <fragment
         android:id="@+id/bookDetailFragment"

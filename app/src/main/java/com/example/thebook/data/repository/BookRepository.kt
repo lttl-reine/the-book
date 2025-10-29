@@ -14,11 +14,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.util.UUID
 
+// Data class for paginated results
+data class PaginatedResult<T>(
+    val data: List<T>,
+    val hasMore: Boolean,
+    val totalCount: Int,
+    val currentPage: Int
+)
+
 class BookRepository {
     private val TAG = "BookRepository"
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val booksRef: DatabaseReference = database.getReference("Books")
-    private val reviewsRef: DatabaseReference = database.getReference("Reviews") // Using Realtime Database for reviews
+    private val reviewsRef: DatabaseReference = database.getReference("Reviews")
+
+    companion object {
+        const val DEFAULT_PAGE_SIZE = 20
+    }
 
     fun getBooks() : Flow<Resources<List<Book>>> = callbackFlow {
         trySend(Resources.Loading())
@@ -114,8 +126,6 @@ class BookRepository {
             booksRef.removeEventListener(valueEventListener)
         }
     }
-
-
 
     fun getBookById(bookId: String): Flow<Resources<Book>> = callbackFlow {
         trySend(Resources.Loading())
@@ -262,7 +272,6 @@ class BookRepository {
             Log.d(TAG, "Closing duplicate check listener")
         }
     }
-
 
     // Add a new review for a book
     fun addReview(review: Review, callback: (Boolean, String?) -> Unit) {
@@ -435,6 +444,97 @@ class BookRepository {
             })
     }
 
+    // Enhanced search with pagination support
+    fun searchBooksPaginated(
+        query: String,
+        genre: String? = null,
+        page: Int = 1,
+        pageSize: Int = DEFAULT_PAGE_SIZE
+    ): Flow<Resources<PaginatedResult<Book>>> = callbackFlow {
+        Log.d(TAG, "Starting paginated search with query: '$query', genre: '$genre', page: $page")
+        trySend(Resources.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val allBooks = mutableListOf<Book>()
+                val searchQuery = query.lowercase().trim()
+
+                // First, collect all matching books
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+
+                        // Check if book matches search criteria
+                        val matchesQuery = if (searchQuery.isEmpty()) {
+                            true
+                        } else {
+                            it.title.lowercase().contains(searchQuery) ||
+                                    it.author.lowercase().contains(searchQuery) ||
+                                    it.genre.any { genre -> genre.lowercase().contains(searchQuery) }
+                        }
+
+                        val matchesGenre = genre?.let { filterGenre ->
+                            it.genre.any { bookGenre ->
+                                bookGenre.lowercase() == filterGenre.lowercase()
+                            }
+                        } ?: true
+
+                        if (matchesQuery && matchesGenre) {
+                            allBooks.add(it)
+                        }
+                    }
+                }
+
+                // Sort by relevance (exact matches first, then partial matches)
+                val sortedBooks = allBooks.sortedWith(compareBy<Book> { book ->
+                    when {
+                        book.title.lowercase() == searchQuery -> 0
+                        book.author.lowercase() == searchQuery -> 1
+                        book.title.lowercase().startsWith(searchQuery) -> 2
+                        book.author.lowercase().startsWith(searchQuery) -> 3
+                        else -> 4
+                    }
+                }.thenByDescending { it.averageRating })
+
+                // Calculate pagination
+                val totalCount = sortedBooks.size
+                val startIndex = (page - 1) * pageSize
+                val endIndex = minOf(startIndex + pageSize, totalCount)
+
+                val paginatedBooks = if (startIndex < totalCount) {
+                    sortedBooks.subList(startIndex, endIndex)
+                } else {
+                    emptyList()
+                }
+
+                val hasMore = endIndex < totalCount
+
+                val paginatedResult = PaginatedResult(
+                    data = paginatedBooks,
+                    hasMore = hasMore,
+                    totalCount = totalCount,
+                    currentPage = page
+                )
+
+                Log.d(TAG, "Paginated search completed: ${paginatedBooks.size} books on page $page of ${kotlin.math.ceil(totalCount.toDouble() / pageSize).toInt()}")
+                trySend(Resources.Success(paginatedResult))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Paginated search failed: ${error.message}", error.toException())
+                trySend(Resources.Error(error.toException()))
+            }
+        }
+
+        booksRef.addListenerForSingleValueEvent(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing paginated search listener")
+        }
+    }
+
+    // Original search method (kept for backward compatibility)
     fun searchBooks(
         query: String,
         genre: String? = null,
@@ -503,7 +603,69 @@ class BookRepository {
         }
     }
 
-    // Get books by specific genre
+    // Get books by specific genre with pagination
+    fun getBooksByGenrePaginated(
+        genre: String,
+        page: Int = 1,
+        pageSize: Int = DEFAULT_PAGE_SIZE
+    ): Flow<Resources<PaginatedResult<Book>>> = callbackFlow {
+        trySend(Resources.Loading())
+
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val allBooks = mutableListOf<Book>()
+                for (childSnapshot in snapshot.children) {
+                    val book = childSnapshot.getValue(Book::class.java)
+                    book?.let {
+                        it.bookId = childSnapshot.key ?: ""
+                        if (it.genre.any { bookGenre ->
+                                bookGenre.lowercase() == genre.lowercase()
+                            }) {
+                            allBooks.add(it)
+                        }
+                    }
+                }
+
+                // Sort by average rating
+                val sortedBooks = allBooks.sortedByDescending { it.averageRating }
+
+                // Calculate pagination
+                val totalCount = sortedBooks.size
+                val startIndex = (page - 1) * pageSize
+                val endIndex = minOf(startIndex + pageSize, totalCount)
+
+                val paginatedBooks = if (startIndex < totalCount) {
+                    sortedBooks.subList(startIndex, endIndex)
+                } else {
+                    emptyList()
+                }
+
+                val hasMore = endIndex < totalCount
+
+                val paginatedResult = PaginatedResult(
+                    data = paginatedBooks,
+                    hasMore = hasMore,
+                    totalCount = totalCount,
+                    currentPage = page
+                )
+
+                trySend(Resources.Success(paginatedResult))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(Resources.Error(error.toException()))
+            }
+        }
+
+        booksRef.addValueEventListener(valueEventListener)
+
+        awaitClose {
+            Log.d(TAG, "Closing paginated books by genre listener for $genre")
+            booksRef.removeEventListener(valueEventListener)
+        }
+    }
+
+    // Get books by specific genre (original method)
     fun getBooksByGenre(genre: String): Flow<Resources<List<Book>>> = callbackFlow {
         trySend(Resources.Loading())
 
@@ -589,5 +751,4 @@ class BookRepository {
             Log.d(TAG, "Closing suggestions listener")
         }
     }
-
 }

@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.thebook.R
 import com.example.thebook.databinding.FragmentSearchBinding
 import com.example.thebook.ui.home.BookAdapter
@@ -28,7 +29,6 @@ class SearchFragment : Fragment() {
     private val sharedDataViewModel: SharedDataViewModel by viewModels()
     private lateinit var booksAdapter: BookAdapter
     private lateinit var suggestionsAdapter: SearchSuggestionsAdapter
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,8 +49,9 @@ class SearchFragment : Fragment() {
         )
         setupRecyclerViews()
         setupSearchView()
-        setupGenreChips() // This will now observe categories
+        setupGenreChips()
         setupClearFilter()
+        setupPullToRefresh()
         observeViewModel()
 
         // Load initial data
@@ -66,18 +67,18 @@ class SearchFragment : Fragment() {
         val filterCategory = arguments?.getString("filter_category")
         val searchTitle = arguments?.getString("search_title")
 
-        // Cập nhật title nếu có
+        // Update title if available
         searchTitle?.let {
-            // Giả sử bạn có TextView để hiển thị title trong header
+            // Assuming you have TextView to display title in header
             // binding.headerBar.tvTitle.text = it
         }
 
-        // Tự động search theo category
+        // Auto search by category
         filterCategory?.let { category ->
             when (category) {
                 "newest" -> {
                     searchViewModel.searchBooksWithFilter("", "newest")
-                    // Ẩn search suggestions và genre chips vì đây là filter cụ thể
+                    // Hide search suggestions and genre chips for specific filters
                     binding.layoutFilters.visibility = View.GONE
                 }
                 "popular" -> {
@@ -102,18 +103,18 @@ class SearchFragment : Fragment() {
                 }
             }
         } ?: run {
-            // Nếu không có filter, load initial data như bình thường
+            // If no filter, load initial data as normal
             searchViewModel.searchBooks("")
         }
     }
 
     private fun selectGenreChip(genreName: String) {
-        // Sẽ được gọi sau khi chips đã được tạo
+        // Will be called after chips have been created
         lifecycleScope.launch {
             sharedDataViewModel.categories.collect { categories ->
                 val targetCategory = categories.find { it.name.equals(genreName, ignoreCase = true) }
                 targetCategory?.let { category ->
-                    // Tìm và select chip tương ứng
+                    // Find and select corresponding chip
                     for (i in 0 until binding.chipGroupGenres.childCount) {
                         val chip = binding.chipGroupGenres.getChildAt(i) as Chip
                         if (chip.text.toString() == category.displayName) {
@@ -127,16 +128,37 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupRecyclerViews() {
-        // Books RecyclerView
+        // Books RecyclerView with pagination
         booksAdapter = BookAdapter { book ->
-             //Navigate to book detail
-             findNavController().navigate(
-                 SearchFragmentDirections.actionSearchFragmentToBookDetailFragment(book.bookId)
-             )
+            // Navigate to book detail
+            findNavController().navigate(
+                SearchFragmentDirections.actionSearchFragmentToBookDetailFragment(book.bookId)
+            )
         }
 
+        val layoutManager = GridLayoutManager(requireContext(), 3)
         binding.recyclerViewBooks.apply {
-            adapter = booksAdapter
+            this.adapter = booksAdapter
+            this.layoutManager = layoutManager
+
+            // Add scroll listener for pagination
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+
+                    val layoutManager = recyclerView.layoutManager as GridLayoutManager
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                    // Load more when reaching near end
+                    if (!searchViewModel.uiState.value.isLoadingMore &&
+                        searchViewModel.uiState.value.hasMore &&
+                        (visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
+                        searchViewModel.loadNextPage()
+                    }
+                }
+            })
         }
 
         // Suggestions RecyclerView
@@ -146,7 +168,6 @@ class SearchFragment : Fragment() {
         }
 
         binding.recyclerViewSuggestions.apply {
-            layoutManager = LinearLayoutManager(requireContext())
             adapter = suggestionsAdapter
         }
     }
@@ -155,7 +176,7 @@ class SearchFragment : Fragment() {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    searchViewModel.searchBooks(it)
+                    searchViewModel.searchBooks(it, resetPagination = true)
                     binding.recyclerViewSuggestions.visibility = View.GONE
                     binding.searchView.clearFocus()
                 }
@@ -184,27 +205,27 @@ class SearchFragment : Fragment() {
 
     private fun setupGenreChips() {
         lifecycleScope.launch {
-            sharedDataViewModel.categories.collect { categories -> // // Observe categories from SharedDataViewModel
-                binding.chipGroupGenres.removeAllViews() // Clear existing chips before adding new ones
-                categories.forEach { category -> //
-                    val chip = Chip(requireContext()) //
-                    chip.text = category.displayName // // Use displayName for UI
-                    chip.isCheckable = true //
-                    chip.setOnCheckedChangeListener { _, isChecked -> //
-                        if (isChecked) { //
+            sharedDataViewModel.categories.collect { categories ->
+                binding.chipGroupGenres.removeAllViews()
+                categories.forEach { category ->
+                    val chip = Chip(requireContext())
+                    chip.text = category.displayName
+                    chip.isCheckable = true
+                    chip.setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
                             // Clear other chips
-                            for (i in 0 until binding.chipGroupGenres.childCount) { //
-                                val otherChip = binding.chipGroupGenres.getChildAt(i) as Chip //
-                                if (otherChip != chip) { //
-                                    otherChip.isChecked = false //
+                            for (i in 0 until binding.chipGroupGenres.childCount) {
+                                val otherChip = binding.chipGroupGenres.getChildAt(i) as Chip
+                                if (otherChip != chip) {
+                                    otherChip.isChecked = false
                                 }
                             }
-                            searchViewModel.filterByGenre(category.name) // // Use 'name' for filtering logic
-                        } else { //
-                            searchViewModel.clearGenreFilter() //
+                            searchViewModel.filterByGenre(category.name, resetPagination = true)
+                        } else {
+                            searchViewModel.clearGenreFilter()
                         }
                     }
-                    binding.chipGroupGenres.addView(chip) //
+                    binding.chipGroupGenres.addView(chip)
                 }
             }
         }
@@ -221,28 +242,52 @@ class SearchFragment : Fragment() {
         }
     }
 
+    private fun setupPullToRefresh() {
+        // If you have SwipeRefreshLayout in your layout
+        // binding.swipeRefreshLayout?.setOnRefreshListener {
+        //     searchViewModel.retryLastSearch()
+        // }
+    }
+
     private fun observeViewModel() {
-        // Observe search results
+        // Observe UI state
         lifecycleScope.launch {
-            searchViewModel.searchResults.collect { resource ->
-                when (resource) {
-                    is Resources.Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-                    is Resources.Success -> {
-                        binding.progressBar.visibility = View.GONE
-                        booksAdapter.submitList(resource.data)
-                        binding.textViewResultCount.text = "${resource.data.size} results"
-                    }
-                    is Resources.Error -> {
-                        binding.progressBar.visibility = View.GONE
-                        Toast.makeText(
-                            requireContext(),
-                            "Search failed: ${resource.exception.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+            searchViewModel.uiState.collect { uiState ->
+                // Handle loading state
+                binding.progressBar.visibility = if (uiState.isLoading) View.VISIBLE else View.GONE
+
+                // Handle loading more state
+                if (uiState.isLoadingMore) {
+                    // Show loading more indicator (you might want to add this to your layout)
+                    // binding.progressBarLoadMore?.visibility = View.VISIBLE
+                } else {
+                    // binding.progressBarLoadMore?.visibility = View.GONE
                 }
+
+                // Update books list
+                booksAdapter.submitList(uiState.books)
+
+                // Update result count
+                val resultText = if (uiState.totalCount > 0) {
+                    "${uiState.books.size} of ${uiState.totalCount} results"
+                } else {
+                    "${uiState.books.size} results"
+                }
+                binding.textViewResultCount.text = resultText
+
+                // Handle error state
+                uiState.error?.let { error ->
+                    Toast.makeText(requireContext(), "Error: $error", Toast.LENGTH_SHORT).show()
+                }
+
+                // Handle empty state
+                if (!uiState.isLoading && uiState.books.isEmpty() && uiState.error == null) {
+                    // Show empty state
+                    binding.textViewResultCount.text = "No results found"
+                }
+
+                // Hide pull to refresh loading
+                // binding.swipeRefreshLayout?.isRefreshing = false
             }
         }
 

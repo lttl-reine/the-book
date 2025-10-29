@@ -3,16 +3,16 @@
     <item
         android:id="@+id/homeTabFragment"
         android:icon="@drawable/ic_home_24"
-        android:title="Home" />
+        android:title="Trang chủ" />
 
     <item
         android:id="@+id/libraryTabFragment"
         android:icon="@drawable/ic_library_24"
-        android:title="Library"
+        android:title="Thư viện"
         />
 
     <item
         android:id="@+id/profileTabFragment"
         android:icon="@drawable/ic_user_16"
-        android:title="Profile" />
+        android:title="Cá nhân" />
 </menu>

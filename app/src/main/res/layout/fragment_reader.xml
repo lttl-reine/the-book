@@ -94,15 +94,15 @@
                 android:max="100"
                 android:progress="0" />
 
-            <TextView
-                android:id="@+id/tv_page_number"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:text="Chương 1 / 10"
-                android:textColor="@android:color/white"
-                android:textSize="14sp" />
+<!--            <TextView-->
+<!--                android:id="@+id/tv_page_number"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:gravity="center"-->
+<!--                android:text="Chương 1 / 10"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:textSize="14sp" />-->
 
         </LinearLayout>
 
@@ -256,7 +256,7 @@
                         android:layout_height="48dp"
                         android:text="A-"
                         android:textSize="12sp"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:drawableStart="@drawable/ic_minus_16" />
 
                     <TextView
                         android:id="@+id/tv_current_font_size"
@@ -274,7 +274,7 @@
                         android:layout_height="48dp"
                         android:text="A+"
                         android:textSize="12sp"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:drawableStart="@drawable/ic_plus_16"/>
 
                 </LinearLayout>
 

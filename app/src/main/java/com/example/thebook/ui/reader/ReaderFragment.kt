@@ -295,7 +295,7 @@ class ReaderFragment : Fragment() {
                         displayChapter(currentChapterIndex + 1)
                     } else {
                         Log.d(TAG, "Reached end of book. Marking as finished.")
-                        markBookAsFinished()
+                        //markBookAsFinished()
                     }
                 }
             }
@@ -399,35 +399,35 @@ class ReaderFragment : Fragment() {
         }
     }
 
-    private fun markBookAsFinished() {
-        val bookId = args.book.bookId ?: return
-
-        lifecycleScope.launch {
-            try {
-                val result = readingProgressRepository.markBookAsFinished(
-                    bookId = bookId,
-                    lastPage = currentChapterIndex
-                )
-
-                when (result) {
-                    is com.example.thebook.utils.Resources.Success -> {
-                        Toast.makeText(
-                            context,
-                            "Chúc mừng! Bạn đã hoàn thành cuốn sách này! 🎉",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.d(TAG, "Book marked as finished")
-                    }
-                    is com.example.thebook.utils.Resources.Error -> {
-                        Log.e(TAG, "Error marking book as finished: ${result.exception?.message}")
-                    }
-                    else -> {}
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Exception marking book as finished: ${e.message}")
-            }
-        }
-    }
+//    private fun markBookAsFinished() {
+//        val bookId = args.book.bookId ?: return
+//
+//        lifecycleScope.launch {
+//            try {
+//                val result = readingProgressRepository.markBookAsFinished(
+//                    bookId = bookId,
+//                    lastPage = currentChapterIndex
+//                )
+//
+//                when (result) {
+//                    is com.example.thebook.utils.Resources.Success -> {
+//                        Toast.makeText(
+//                            context,
+//                            "Chúc mừng! Bạn đã hoàn thành cuốn sách này! 🎉",
+//                            Toast.LENGTH_LONG
+//                        ).show()
+//                        Log.d(TAG, "Book marked as finished")
+//                    }
+//                    is com.example.thebook.utils.Resources.Error -> {
+//                        Log.e(TAG, "Error marking book as finished: ${result.exception?.message}")
+//                    }
+//                    else -> {}
+//                }
+//            } catch (e: Exception) {
+//                Log.e(TAG, "Exception marking book as finished: ${e.message}")
+//            }
+//        }
+//    }
 
     private fun setupTocPanel() {
         val displayMetrics = resources.displayMetrics
@@ -769,7 +769,6 @@ class ReaderFragment : Fragment() {
                     )
 
                     currentChapterIndex = index
-                    updateProgressControls()
                     // Reset scroll position for new chapter
                     binding.seekBarPageProgress.progress = 0
 
@@ -900,17 +899,6 @@ class ReaderFragment : Fragment() {
             binding.bottomControlsOverlay.visibility = View.VISIBLE
         }
     }
-
-    @SuppressLint("SetTextI18n")
-    private fun updateProgressControls() {
-        currentBook?.let { book ->
-            val totalChapters = book.spine.spineReferences.size
-            if (totalChapters > 0) {
-                binding.tvPageNumber.text = "Chương ${currentChapterIndex + 1} / $totalChapters"
-            }
-        }
-    }
-
     private fun createEnhancedTocList(): List<EnhancedTocItem> {
         val enhancedTocList = mutableListOf<EnhancedTocItem>()
 

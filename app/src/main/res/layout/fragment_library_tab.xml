@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Thư viện của tôi"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/black" />
 
@@ -33,7 +33,8 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_search_24"
-            android:contentDescription="Tìm kiếm" />
+            android:contentDescription="Tìm kiếm"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

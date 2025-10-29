@@ -150,8 +150,8 @@ object EpubCacheManager {
 
                 if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val inputStream = connection.inputStream
-                    val tempEpubFile = EpubCacheManager.getTempEpubFile(context)
-                    EpubCacheManager.clearTempEpubFile(context)
+                    val tempEpubFile = getTempEpubFile(context)
+                    clearTempEpubFile(context)
 
                     val outputStream = FileOutputStream(tempEpubFile)
 

@@ -21,132 +21,60 @@
                 android:id="@+id/header_bar"
                 layout="@layout/layout_main_header" />
 
-            <!-- Filter Tabs -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFFFFF">
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chip_all"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="Tất cả"
-                            android:textColor="@color/white"
-                            android:checkable="true"
-                            android:checked="true"
-                            app:chipBackgroundColor="@color/colorPrimary"
-                            app:chipCornerRadius="20dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chip_currently_reading"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="Đang đọc"
-                            android:textColor="#666666"
-                            android:checkable="true"
-                            app:chipBackgroundColor="@color/colorSurface"
-                            app:chipCornerRadius="20dp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chip_completed"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="Đã hoàn thành"
-                            android:textColor="#666666"
-                            android:checkable="true"
-                            app:chipBackgroundColor="@color/colorSurface"
-                            app:chipCornerRadius="20dp" />
-
-<!--                        <com.google.android.material.chip.Chip-->
-<!--                            android:id="@+id/chip_add_filter"-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:text="+"-->
-<!--                            android:textColor="@color/colorPrimary"-->
-<!--                            app:chipBackgroundColor="@color/white"-->
-<!--                            app:chipStrokeColor="@color/colorPrimary"-->
-<!--                            app:chipStrokeWidth="1dp"-->
-<!--                            app:chipCornerRadius="20dp" />-->
-
-                    </LinearLayout>
-
-                </HorizontalScrollView>
-
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Sort Options -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="24dp"
-                android:paddingVertical="8dp">
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:paddingHorizontal="24dp"-->
+<!--                android:paddingVertical="8dp">-->
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="Sắp xếp theo:"
-                    android:textColor="#666666"
-                    android:textSize="14sp" />
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="16dp"-->
+<!--                    android:text="Sắp xếp theo:"-->
+<!--                    android:textColor="#666666"-->
+<!--                    android:textSize="14sp" />-->
 
-                <com.google.android.material.chip.ChipGroup
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    app:singleSelection="true">
+<!--                <com.google.android.material.chip.ChipGroup-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_weight="1"-->
+<!--                    app:singleSelection="true">-->
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_sort_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tiêu đề"
-                        android:textSize="12sp"
-                        android:checked="true"
-                        android:checkable="true"
-                        app:chipMinHeight="32dp" />
+<!--                    <com.google.android.material.chip.Chip-->
+<!--                        android:id="@+id/chip_sort_title"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="Tiêu đề"-->
+<!--                        android:textSize="12sp"-->
+<!--                        android:checked="true"-->
+<!--                        android:checkable="true"-->
+<!--                        app:chipMinHeight="32dp" />-->
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_sort_author"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tác giả"
-                        android:textSize="12sp"
-                        android:checkable="true"
-                        app:chipMinHeight="32dp" />
+<!--                    <com.google.android.material.chip.Chip-->
+<!--                        android:id="@+id/chip_sort_author"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="Tác giả"-->
+<!--                        android:textSize="12sp"-->
+<!--                        android:checkable="true"-->
+<!--                        app:chipMinHeight="32dp" />-->
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_sort_rating"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Đánh giá"
-                        android:textSize="12sp"
-                        android:checkable="true"
-                        app:chipMinHeight="32dp" />
+<!--                    <com.google.android.material.chip.Chip-->
+<!--                        android:id="@+id/chip_sort_rating"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="Đánh giá"-->
+<!--                        android:textSize="12sp"-->
+<!--                        android:checkable="true"-->
+<!--                        app:chipMinHeight="32dp" />-->
 
-                </com.google.android.material.chip.ChipGroup>
+<!--                </com.google.android.material.chip.ChipGroup>-->
 
-            </LinearLayout>
+<!--            </LinearLayout>-->
 
             <!-- Progress Indicator -->
             <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -157,6 +85,34 @@
                 android:layout_margin="24dp"
                 android:visibility="gone"
                 app:indicatorColor="@color/colorPrimary" />
+
+            <!-- Featured Books Banner -->
+            <LinearLayout
+                android:id="@+id/layout_featured_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✨ Sách nổi bật"
+                    android:textColor="@color/colorOnSurface"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:paddingHorizontal="24dp"
+                    android:paddingBottom="16dp" />
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vp_featured_books"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:clipToPadding="false"
+                    android:clipChildren="false" />
+
+            </LinearLayout>
 
             <!-- Recently Read Section -->
             <LinearLayout
@@ -197,6 +153,8 @@
                     tools:listitem="@layout/item_book" />
 
             </LinearLayout>
+
+
 
             <!-- Newest Books Section -->
             <LinearLayout

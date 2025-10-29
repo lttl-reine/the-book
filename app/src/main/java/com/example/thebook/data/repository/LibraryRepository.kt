@@ -36,7 +36,7 @@ class LibraryRepository {
                 userId = userId,
                 bookId = bookId,
                 addedAt = System.currentTimeMillis(),
-                readingStatus = ReadingStatus.NOT_STARTED.name
+                readingStatus = ReadingStatus.READING.name
             )
 
             libraryRef.child(userId).child(libraryId).setValue(libraryItem).await()

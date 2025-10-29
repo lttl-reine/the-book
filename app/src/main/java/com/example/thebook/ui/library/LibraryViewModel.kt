@@ -27,6 +27,9 @@ class LibraryViewModel(
     private val _removeFromLibraryResult = MutableStateFlow<Resources<Unit>?>(null)
     val removeFromLibraryResult: StateFlow<Resources<Unit>?> = _removeFromLibraryResult
 
+    private val _isBookInLibrary = MutableStateFlow<Boolean>(false)
+    val isBookInLibrary: StateFlow<Boolean> = _isBookInLibrary
+
     fun loadUserLibrary(userId: String) {
         viewModelScope.launch {
             Log.d(TAG, "loadUserLibrary called for userId: $userId") // Log khi hàm được gọi
@@ -143,6 +146,14 @@ class LibraryViewModel(
     fun updateFavoriteStatus(userId: String, bookId: String, isFavorite: Boolean) {
         viewModelScope.launch {
             libraryRepository.updateFavoriteStatus(userId, bookId, isFavorite)
+        }
+    }
+
+    fun checkBookInLibrary(userId: String, bookId: String) {
+        viewModelScope.launch {
+            val exists = libraryRepository.isBookInLibrary(userId, bookId)
+            _isBookInLibrary.value = exists
+            Log.d(TAG, "checkBookInLibrary: Book $bookId for user $userId exists: $exists")
         }
     }
 
